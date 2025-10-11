@@ -1,11 +1,10 @@
-
 using System.Collections;
 using LinguaTech.Domain.Entities.Base;
 using LinguaTech.Domain.Interfaces;
 using LinguaTech.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Infrastructure.Repositories;
+namespace LinguaTech.Infrastructure.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {

@@ -1,10 +1,9 @@
-using System.Collections.Generic;
 using System.Security.Claims;
 
-namespace LinguaTech.Application.Common.Security
+namespace LinguaTech.Application.Common.Security;
+
+public interface IJwtService
 {
-    public interface IJwtService
-    {
-        string GenerateToken(IEnumerable<Claim> claims);
-    }
+    string GenerateToken(IEnumerable<Claim> claims);
 }
+

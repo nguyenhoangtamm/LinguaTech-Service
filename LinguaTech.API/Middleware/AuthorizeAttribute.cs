@@ -1,4 +1,4 @@
-using LinguaTech.Domain.DTOs;
+using LinguaTech.Domain.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

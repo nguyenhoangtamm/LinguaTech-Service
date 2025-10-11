@@ -1,4 +1,4 @@
-namespace LinguaTech.Domain.DTOs;
+namespace LinguaTech.Domain.DTOs.Responses;
 
 public class UserResponse
 {

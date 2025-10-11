@@ -4,6 +4,8 @@ using LinguaTech.Application.Common.Security;
 using LinguaTech.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using LinguaTech.Infrastructure.Persistence;
+using LinguaTech.Domain.Interfaces;
+using LinguaTech.Infrastructure.Repositories;
 
 namespace LinguaTech.Infrastructure;
 
@@ -25,7 +27,9 @@ public static class DependencyInjection
                 options.UseNpgsql(connectionString));
         }
 
-        // TODO: register repositories, unit of work, etc.
+        // Register repositories and unit of work
+        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

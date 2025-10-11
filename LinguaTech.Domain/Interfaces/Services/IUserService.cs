@@ -1,0 +1,15 @@
+﻿using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
+using LinguaTech.Domain.Shares;
+
+namespace LinguaTech.Domain.Interfaces.Services;
+
+public interface IUserService
+{
+    Task<Result<int>> Create(CreateUserRequest request, CancellationToken cancellationToken);
+    Task<Result<int>> Update(int id, UpdateUserRequest request, CancellationToken cancellationToken);
+    Task<Result<int>> Delete(int id, CancellationToken cancellationToken);
+    Task<Result<GetUserDto>> GetById(int id, CancellationToken cancellationToken);
+    Task<Result<List<GetAllUsersDto>>> GetAll(int pageNumber, int pageSize, CancellationToken cancellationToken);
+    Task<Result<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination(int pageNumber, int pageSize, CancellationToken cancellationToken);
+}

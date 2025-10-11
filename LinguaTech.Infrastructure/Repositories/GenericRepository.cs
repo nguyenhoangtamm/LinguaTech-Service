@@ -3,7 +3,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositories;
+namespace LinguaTech.Infrastructure.Repositories;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : BaseAuditableEntity
 {
