@@ -3,6 +3,8 @@ using LinguaTech.Application.Services;
 using LinguaTech.Domain.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 namespace LinguaTech.Application;
 
@@ -19,7 +21,8 @@ public static class DependencyInjection
         // Register application services
         services.AddTransient<IUserService, UserService>();
 
-        // Register validators, MediatR, etc. here if needed
+        // Register FluentValidation validators from this assembly
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         return services;
     }
