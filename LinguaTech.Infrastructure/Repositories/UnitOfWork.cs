@@ -1,11 +1,10 @@
-
 using System.Collections;
 using LinguaTech.Domain.Entities.Base;
 using LinguaTech.Domain.Interfaces;
 using LinguaTech.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Infrastructure.Repositories;
+namespace LinguaTech.Infrastructure.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {
@@ -17,7 +16,6 @@ public class UnitOfWork : IUnitOfWork
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
-
 
     public async Task<IDbContextTransaction> BeginTransactionAsync()
     {
@@ -71,12 +69,10 @@ public class UnitOfWork : IUnitOfWork
         {
             if (disposing)
             {
-                //dispose managed resources
                 _dbContext.Dispose();
             }
         }
 
-        //dispose unmanaged resources
         disposed = true;
     }
 }

@@ -7,32 +7,31 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using LinguaTech.Application.Common.Security;
 
-namespace LinguaTech.Infrastructure.Services
+namespace LinguaTech.Infrastructure.Services;
+
+public class JwtService : IJwtService
 {
-    public class JwtService : IJwtService
+    private readonly JwtSettings _settings;
+
+    public JwtService(IOptions<JwtSettings> options)
     {
-        private readonly JwtSettings _settings;
+        _settings = options.Value;
+    }
 
-        public JwtService(IOptions<JwtSettings> options)
-        {
-            _settings = options.Value;
-        }
+    public string GenerateToken(IEnumerable<Claim> claims)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expires = DateTime.UtcNow.AddMinutes(_settings.ExpiresInMinutes);
 
-        public string GenerateToken(IEnumerable<Claim> claims)
-        {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.UtcNow.AddMinutes(_settings.ExpiresInMinutes);
+        var token = new JwtSecurityToken(
+            issuer: _settings.Issuer,
+            audience: _settings.Audience,
+            claims: claims,
+            expires: expires,
+            signingCredentials: creds
+        );
 
-            var token = new JwtSecurityToken(
-                issuer: _settings.Issuer,
-                audience: _settings.Audience,
-                claims: claims,
-                expires: expires,
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
