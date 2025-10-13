@@ -9,7 +9,6 @@ public class User : BaseAuditableEntity
     public string PasswordHash { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public string Status { get; set; } = string.Empty;
-
     public virtual Role Role { get; set; } = null!;
     public virtual Profile? Profile { get; set; }
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();

@@ -1,11 +1,11 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using LinguaTech.Application.Common.Security;
+using LinguaTech.Domain.Interfaces;
+using LinguaTech.Infrastructure.Persistence;
+using LinguaTech.Infrastructure.Repositories;
 using LinguaTech.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using LinguaTech.Infrastructure.Persistence;
-using LinguaTech.Domain.Interfaces;
-using LinguaTech.Infrastructure.Repositories;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LinguaTech.Infrastructure;
 
@@ -30,6 +30,8 @@ public static class DependencyInjection
         // Register repositories and unit of work
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
 
         return services;
     }

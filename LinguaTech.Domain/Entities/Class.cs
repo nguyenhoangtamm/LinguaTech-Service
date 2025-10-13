@@ -11,7 +11,6 @@ public class Class : BaseAuditableEntity
     public string Schedule { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public int MaxStudents { get; set; }
-    public int CourseId2 { get; set; }
     public string TeacherName { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
 
