@@ -9,7 +9,6 @@ using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using BCrypt.Net;
 using ProfileEntity = LinguaTech.Domain.Entities.Profile;
 
 namespace LinguaTech.Application.Services;
@@ -47,7 +46,7 @@ public class UserService(
 
             // Map request to user entity
             var user = _mapper.Map<User>(request);
-            
+
             // Hash password
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
             user.Status = "Active";
@@ -55,7 +54,7 @@ public class UserService(
             // Add user to repository
             var userRepo = _unitOfWork.Repository<User>();
             await userRepo.AddAsync(user);
-            
+
             // Save changes to get the user ID
             await _unitOfWork.Save(cancellationToken);
 
@@ -121,16 +120,16 @@ public class UserService(
             // Update user properties
             if (!string.IsNullOrEmpty(request.Username))
                 user.Username = request.Username;
-            
+
             if (!string.IsNullOrEmpty(request.Email))
                 user.Email = request.Email;
-            
+
             if (!string.IsNullOrEmpty(request.Password))
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            
+
             if (request.RoleId.HasValue)
                 user.RoleId = request.RoleId.Value;
-            
+
             if (!string.IsNullOrEmpty(request.Status))
                 user.Status = request.Status;
 
@@ -220,18 +219,16 @@ public class UserService(
         }
     }
 
-    public async Task<Result<List<GetAllUsersDto>>> GetAll(int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<Result<List<GetAllUsersDto>>> GetAll(CancellationToken cancellationToken)
     {
         try
         {
-            LogInformation($"Getting all users - Page: {pageNumber}, Size: {pageSize}");
+            LogInformation($"Getting all users");
 
             var users = await _unitOfWork.Repository<User>().Entities
                 .Include(u => u.Role)
                 .Include(u => u.Profile)
                 .Where(u => u.Status == "Active")
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
                 .ProjectTo<GetAllUsersDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
 
@@ -245,23 +242,23 @@ public class UserService(
         }
     }
 
-    public async Task<Result<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination(int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination(GetUsersWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
-            LogInformation($"Getting users with pagination - Page: {pageNumber}, Size: {pageSize}");
+            LogInformation($"Getting users with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var query = _unitOfWork.Repository<User>().Entities
+            var userQuery = _unitOfWork.Repository<User>().Entities
                 .Include(u => u.Role)
                 .Include(u => u.Profile)
                 .Where(u => u.Status == "Active");
 
-            var totalCount = await query.CountAsync(cancellationToken);
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var totalCount = await userQuery.CountAsync(cancellationToken);
+            var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
 
-            var users = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+            var users = await userQuery
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
                 .ProjectTo<GetUsersWithPaginationDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
 
@@ -270,10 +267,10 @@ public class UserService(
                 Data = users,
                 TotalCount = totalCount,
                 TotalPages = totalPages,
-                CurrentPage = pageNumber,
-                PageSize = pageSize,
-                HasNextPage = pageNumber < totalPages,
-                HasPreviousPage = pageNumber > 1
+                CurrentPage = query.PageNumber,
+                PageSize = query.PageSize,
+                HasNextPage = query.PageNumber < totalPages,
+                HasPreviousPage = query.PageNumber > 1
             };
 
             LogInformation($"Retrieved {users.Count} users with pagination successfully");

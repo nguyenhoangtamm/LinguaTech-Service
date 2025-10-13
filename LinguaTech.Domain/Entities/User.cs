@@ -10,7 +10,6 @@ public class User : BaseAuditableEntity
     public int RoleId { get; set; }
     public string Status { get; set; } = string.Empty;
 
-    // Navigation properties
     public virtual Role Role { get; set; } = null!;
     public virtual Profile? Profile { get; set; }
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();

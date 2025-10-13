@@ -5,16 +5,9 @@ namespace LinguaTech.Domain.Shares;
 public class Result<T> : IResult<T>
 {
     public string Message { get; set; }
-
     public bool Succeeded { get; set; }
-
     public T Data { get; set; }
-
     public int Code { get; set; }
-
-    #region Non Async Methods
-
-    #region Success Methods
 
     public static Result<T> Success()
     {
@@ -55,10 +48,6 @@ public class Result<T> : IResult<T>
             Code = 200
         };
     }
-
-    #endregion
-
-    #region Failure Methods
 
     public static Result<T> Failure()
     {
@@ -101,17 +90,8 @@ public class Result<T> : IResult<T>
         return new Result<T>
         {
             Succeeded = false
-            // Exception = exception 
         };
     }
-
-    #endregion
-
-    #endregion
-
-    #region Async Methods
-
-    #region Success Methods
 
     public static Task<Result<T>> SuccessAsync()
     {
@@ -133,10 +113,6 @@ public class Result<T> : IResult<T>
         return Task.FromResult(Success(data, message));
     }
 
-    #endregion
-
-    #region Failure Methods
-
     public static Task<Result<T>> FailureAsync()
     {
         return Task.FromResult(Failure());
@@ -157,13 +133,8 @@ public class Result<T> : IResult<T>
         return Task.FromResult(Failure(data, message));
     }
 
-
     public static Task<Result<T>> FailureAsync(Exception exception)
     {
         return Task.FromResult(Failure(exception));
     }
-
-    #endregion
-
-    #endregion
 }

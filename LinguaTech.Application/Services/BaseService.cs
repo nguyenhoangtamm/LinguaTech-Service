@@ -21,9 +21,6 @@ public abstract class BaseService
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
-    /// <summary>
-    /// Lấy userId từ token (claim "userId").
-    /// </summary>
     protected string? ProfileCode
     {
         get { return _httpContextAccessor.HttpContext?.Items["ProfileCode"]?.ToString(); }
@@ -33,7 +30,6 @@ public abstract class BaseService
     {
         get { return _httpContextAccessor.HttpContext?.Items["UserName"]?.ToString(); }
     }
-
 
     protected List<string> Roles
     {
@@ -51,17 +47,11 @@ public abstract class BaseService
         }
     }
 
-    /// <summary>
-    /// Phương thức để ghi log thông tin.
-    /// </summary>
     protected void LogInformation(string message)
     {
         _logger.LogInformation(message);
     }
 
-    /// <summary>
-    /// Phương thức để ghi log lỗi.
-    /// </summary>
     protected void LogError(string message, Exception ex)
     {
         _logger.LogError(ex, message);

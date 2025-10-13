@@ -17,7 +17,6 @@ public class UnitOfWork : IUnitOfWork
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-
     public async Task<IDbContextTransaction> BeginTransactionAsync()
     {
         return await _dbContext.Database.BeginTransactionAsync();
@@ -70,12 +69,10 @@ public class UnitOfWork : IUnitOfWork
         {
             if (disposing)
             {
-                //dispose managed resources
                 _dbContext.Dispose();
             }
         }
 
-        //dispose unmanaged resources
         disposed = true;
     }
 }
