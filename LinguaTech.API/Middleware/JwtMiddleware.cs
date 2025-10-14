@@ -1,12 +1,8 @@
-using System;
-using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using LinguaTech.Domain.Common.Security;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using LinguaTech.Application.Common.Security;
 
 namespace LinguaTech.API.Middleware;
 

@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using LinguaTech.Domain.Common.Security;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using LinguaTech.Application.Common.Security;
 
 namespace LinguaTech.Infrastructure.Services;
 

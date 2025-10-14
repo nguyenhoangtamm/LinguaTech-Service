@@ -1,5 +1,5 @@
 using FluentValidation;
-using LinguaTech.Application.DTOs.Auth;
+using LinguaTech.Domain.DTOs.Auth;
 
 namespace LinguaTech.Application.Validators.Auth;
 

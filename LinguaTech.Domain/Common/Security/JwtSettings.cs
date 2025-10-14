@@ -1,6 +1,4 @@
-using System;
-
-namespace LinguaTech.Application.Common.Security
+namespace LinguaTech.Domain.Common.Security
 {
     public class JwtSettings
     {

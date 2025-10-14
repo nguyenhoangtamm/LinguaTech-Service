@@ -1,6 +1,6 @@
 namespace LinguaTech.Domain.DTOs.Requests;
 
-public class CreateUserRequest
+public record CreateUserRequest
 {
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -10,7 +10,7 @@ public class CreateUserRequest
     public int RoleId { get; set; }
 }
 
-public class UpdateUserRequest
+public record UpdateUserRequest
 {
     public int Id { get; set; }
     public string? Username { get; set; }
@@ -22,14 +22,14 @@ public class UpdateUserRequest
     public string? Status { get; set; }
 }
 
-public class GetUsersWithPaginationQuery
+public record GetUsersWithPaginationQuery
 {
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
     public string? Keyword { get; set; }
 }
 
-public class UpdateUserWithIdRequest
+public record UpdateUserWithIdRequest
 {
     public int Id { get; set; }
     public string? Username { get; set; }
@@ -41,7 +41,7 @@ public class UpdateUserWithIdRequest
     public string? Status { get; set; }
 }
 
-public class DeleteUserRequest
+public record DeleteUserRequest
 {
     public int Id { get; set; }
 }

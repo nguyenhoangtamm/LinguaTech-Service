@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace LinguaTech.Application.Common.Security;
+namespace LinguaTech.Domain.Common.Security;
 
 public interface IJwtService
 {

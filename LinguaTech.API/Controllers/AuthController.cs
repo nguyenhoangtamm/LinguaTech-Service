@@ -1,4 +1,4 @@
-using LinguaTech.Application.DTOs.Auth;
+using LinguaTech.Domain.DTOs.Auth;
 using LinguaTech.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

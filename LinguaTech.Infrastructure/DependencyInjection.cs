@@ -1,14 +1,14 @@
-using LinguaTech.Application.Common.Security;
 using LinguaTech.Application.Interfaces;
+using LinguaTech.Domain.Common.Security;
+using LinguaTech.Domain.Entities;
 using LinguaTech.Domain.Interfaces;
 using LinguaTech.Infrastructure.Persistence;
 using LinguaTech.Infrastructure.Repositories;
 using LinguaTech.Infrastructure.Services;
-using LinguaTech.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Identity;
 
 namespace LinguaTech.Infrastructure;
 

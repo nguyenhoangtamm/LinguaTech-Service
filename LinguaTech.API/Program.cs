@@ -1,11 +1,11 @@
+using System.Text;
+using FluentValidation.AspNetCore;
 using LinguaTech.Application;
-using LinguaTech.Application.Common.Security;
+using LinguaTech.Domain.Common.Security;
 using LinguaTech.Infrastructure;
 using LinguaTech.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

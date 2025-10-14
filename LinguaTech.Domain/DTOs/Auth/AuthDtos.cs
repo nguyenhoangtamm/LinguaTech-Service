@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace LinguaTech.Application.DTOs.Auth;
+namespace LinguaTech.Domain.DTOs.Auth;
 
 public class LoginRequest
 {

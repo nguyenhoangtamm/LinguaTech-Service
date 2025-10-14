@@ -1,8 +1,8 @@
-using LinguaTech.Application.Common.Security;
+using System.Security.Claims;
+using LinguaTech.Domain.Common.Security;
 using LinguaTech.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace LinguaTech.Application.Services;
 
