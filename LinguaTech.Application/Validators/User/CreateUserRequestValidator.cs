@@ -1,7 +1,7 @@
 using FluentValidation;
 using LinguaTech.Domain.DTOs.Requests;
 
-namespace LinguaTech.Application.Validators;
+namespace LinguaTech.Application.Validators.User;
 
 public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 {
