@@ -20,6 +20,7 @@ public static class DependencyInjection
 
         // Register application services
         services.AddTransient<IUserService, UserService>();
+        services.AddTransient<IAuthService, AuthService>();
 
         // Register FluentValidation validators from this assembly
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

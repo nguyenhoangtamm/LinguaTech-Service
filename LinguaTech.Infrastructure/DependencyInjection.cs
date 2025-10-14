@@ -1,11 +1,14 @@
 using LinguaTech.Application.Common.Security;
+using LinguaTech.Application.Interfaces;
 using LinguaTech.Domain.Interfaces;
 using LinguaTech.Infrastructure.Persistence;
 using LinguaTech.Infrastructure.Repositories;
 using LinguaTech.Infrastructure.Services;
+using LinguaTech.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
 
 namespace LinguaTech.Infrastructure;
 
@@ -27,11 +30,38 @@ public static class DependencyInjection
                 options.UseNpgsql(connectionString));
         }
 
+        // Configure Identity
+        services.AddIdentity<User, Role>(options =>
+        {
+            // Password settings
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = true;
+            options.Password.RequiredLength = 6;
+            options.Password.RequiredUniqueChars = 1;
+
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+
+            // User settings
+            options.User.AllowedUserNameCharacters =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            options.User.RequireUniqueEmail = true;
+
+            // Sign-in settings
+            options.SignIn.RequireConfirmedEmail = false;
+            options.SignIn.RequireConfirmedPhoneNumber = false;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+
         // Register repositories and unit of work
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-
+        services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

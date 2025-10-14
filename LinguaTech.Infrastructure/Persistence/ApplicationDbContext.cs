@@ -1,18 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using LinguaTech.Domain.Entities.Base;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Interfaces;
 
 namespace LinguaTech.Infrastructure.Persistence;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User, Role, int>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
 
-    // User Management
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
+    // User Management - Users and Roles are already included from IdentityDbContext
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<Menu> Menus { get; set; }
     public DbSet<RoleMenu> RoleMenus { get; set; }
@@ -40,15 +40,15 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+        
         // Apply configurations from this assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
-        base.OnModelCreating(modelBuilder);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var entries = ChangeTracker.Entries<BaseAuditableEntity>();
+        var entries = ChangeTracker.Entries<IAuditableEntity>();
 
         foreach (var entry in entries)
         {

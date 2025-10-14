@@ -1,14 +1,21 @@
 using LinguaTech.Domain.Entities.Base;
+using LinguaTech.Domain.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace LinguaTech.Domain.Entities;
 
-public class User : BaseAuditableEntity
+public class User : IdentityUser<int>, IAuditableEntity
 {
-    public string Username { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public string Status { get; set; } = string.Empty;
+    
+    // Audit fields from IAuditableEntity
+    public string? CreatedBy { get; set; }
+    public DateTime? CreatedDate { get; set; }
+    public string? UpdatedBy { get; set; }
+    public DateTime? UpdatedDate { get; set; }
+    public bool IsDeleted { get; set; }
+    
     public virtual Role Role { get; set; } = null!;
     public virtual Profile? Profile { get; set; }
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();

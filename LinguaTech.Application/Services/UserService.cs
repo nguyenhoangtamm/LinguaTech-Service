@@ -1,5 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using LinguaTech.Application.Interfaces;
 using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Entities;
@@ -13,13 +14,21 @@ using ProfileEntity = LinguaTech.Domain.Entities.Profile;
 
 namespace LinguaTech.Application.Services;
 
-public class UserService(
-    IHttpContextAccessor httpContextAccessor,
-    ILogger<UserService> logger,
-    IUnitOfWork unitOfWork,
-    IMapper mapper)
-    : BaseService(httpContextAccessor, logger, unitOfWork, mapper), IUserService
+public class UserService : BaseService, IUserService
 {
+    private readonly IUserRepository _userRepository;
+
+    public UserService(
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<UserService> logger,
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IUserRepository userRepository)
+        : base(httpContextAccessor, logger, unitOfWork, mapper)
+    {
+        _userRepository = userRepository;
+    }
+
     public async Task<Result<int>> Create(CreateUserRequest request, CancellationToken cancellationToken)
     {
         try
@@ -27,45 +36,46 @@ public class UserService(
             LogInformation($"Creating user with username: {request.Username}");
 
             // Check if username already exists
-            var existingUser = await _unitOfWork.Repository<User>().Entities
-                .FirstOrDefaultAsync(u => u.Username == request.Username, cancellationToken);
-
+            var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
             if (existingUser != null)
             {
                 return Result<int>.Failure("Username already exists");
             }
 
             // Check if email already exists
-            var existingEmail = await _unitOfWork.Repository<User>().Entities
-                .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
-
+            var existingEmail = await _userRepository.GetByEmailAsync(request.Email);
             if (existingEmail != null)
             {
                 return Result<int>.Failure("Email already exists");
             }
 
-            // Map request to user entity
-            var user = _mapper.Map<User>(request);
+            // Create user entity
+            var user = new User
+            {
+                UserName = request.Username, // Identity uses UserName instead of Username
+                Email = request.Email,
+                RoleId = request.RoleId,
+                Status = "Active",
+                EmailConfirmed = true,
+                CreatedDate = DateTime.UtcNow,
+                CreatedBy = UserName ?? "System"
+            };
 
-            // Hash password
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            user.Status = "Active";
-
-            // Add user to repository
-            var userRepo = _unitOfWork.Repository<User>();
-            await userRepo.AddAsync(user);
-
-            // Save changes to get the user ID
-            await _unitOfWork.Save(cancellationToken);
+            // Create user with password
+            await _userRepository.CreateAsync(user, request.Password);
 
             // Create profile
-            var profile = _mapper.Map<ProfileEntity>(request);
-            profile.UserId = user.Id;
+            var profile = new ProfileEntity
+            {
+                UserId = user.Id,
+                Fullname = $"{request.FirstName} {request.LastName}".Trim(),
+                Email = request.Email,
+                CreatedDate = DateTime.UtcNow,
+                CreatedBy = UserName ?? "System"
+            };
 
             var profileRepo = _unitOfWork.Repository<ProfileEntity>();
             await profileRepo.AddAsync(profile);
-
-            // Save changes
             await _unitOfWork.Save(cancellationToken);
 
             LogInformation($"User created successfully with ID: {user.Id}");
@@ -85,21 +95,17 @@ public class UserService(
             LogInformation($"Updating user with ID: {id}");
 
             // Get existing user
-            var user = await _unitOfWork.Repository<User>().Entities
-                .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
-
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
                 return Result<int>.Failure("User not found");
             }
 
             // Check if username already exists (if changing username)
-            if (!string.IsNullOrEmpty(request.Username) && request.Username != user.Username)
+            if (!string.IsNullOrEmpty(request.Username) && request.Username != user.UserName)
             {
-                var existingUser = await _unitOfWork.Repository<User>().Entities
-                    .FirstOrDefaultAsync(u => u.Username == request.Username && u.Id != id, cancellationToken);
-
-                if (existingUser != null)
+                var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
+                if (existingUser != null && existingUser.Id != id)
                 {
                     return Result<int>.Failure("Username already exists");
                 }
@@ -108,10 +114,8 @@ public class UserService(
             // Check if email already exists (if changing email)
             if (!string.IsNullOrEmpty(request.Email) && request.Email != user.Email)
             {
-                var existingEmail = await _unitOfWork.Repository<User>().Entities
-                    .FirstOrDefaultAsync(u => u.Email == request.Email && u.Id != id, cancellationToken);
-
-                if (existingEmail != null)
+                var existingEmail = await _userRepository.GetByEmailAsync(request.Email);
+                if (existingEmail != null && existingEmail.Id != id)
                 {
                     return Result<int>.Failure("Email already exists");
                 }
@@ -119,13 +123,10 @@ public class UserService(
 
             // Update user properties
             if (!string.IsNullOrEmpty(request.Username))
-                user.Username = request.Username;
+                user.UserName = request.Username;
 
             if (!string.IsNullOrEmpty(request.Email))
                 user.Email = request.Email;
-
-            if (!string.IsNullOrEmpty(request.Password))
-                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             if (request.RoleId.HasValue)
                 user.RoleId = request.RoleId.Value;
@@ -134,6 +135,10 @@ public class UserService(
                 user.Status = request.Status;
 
             user.UpdatedDate = DateTime.UtcNow;
+            user.UpdatedBy = UserName ?? "System";
+
+            // Update user
+            await _userRepository.UpdateAsync(user);
 
             // Update profile if FirstName or LastName provided
             if (!string.IsNullOrEmpty(request.FirstName) || !string.IsNullOrEmpty(request.LastName))
@@ -143,13 +148,17 @@ public class UserService(
 
                 if (profile != null)
                 {
-                    var fullName = $"{request.FirstName ?? profile.Fullname.Split(' ').FirstOrDefault()} {request.LastName ?? profile.Fullname.Split(' ').LastOrDefault()}".Trim();
-                    profile.Fullname = fullName;
+                    var nameParts = profile.Fullname?.Split(' ') ?? new string[0];
+                    var firstName = !string.IsNullOrEmpty(request.FirstName) ? request.FirstName : nameParts.FirstOrDefault() ?? "";
+                    var lastName = !string.IsNullOrEmpty(request.LastName) ? request.LastName : nameParts.LastOrDefault() ?? "";
+                    
+                    profile.Fullname = $"{firstName} {lastName}".Trim();
                     profile.UpdatedDate = DateTime.UtcNow;
+                    profile.UpdatedBy = UserName ?? "System";
                 }
-            }
 
-            await _unitOfWork.Save(cancellationToken);
+                await _unitOfWork.Save(cancellationToken);
+            }
 
             LogInformation($"User updated successfully with ID: {id}");
             return Result<int>.Success(id, "User updated successfully");
@@ -167,19 +176,13 @@ public class UserService(
         {
             LogInformation($"Deleting user with ID: {id}");
 
-            var user = await _unitOfWork.Repository<User>().Entities
-                .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
-
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
                 return Result<int>.Failure("User not found");
             }
 
-            // Soft delete - mark as inactive
-            user.Status = "Inactive";
-            user.UpdatedDate = DateTime.UtcNow;
-
-            await _unitOfWork.Save(cancellationToken);
+            await _userRepository.DeleteAsync(id);
 
             LogInformation($"User deleted successfully with ID: {id}");
             return Result<int>.Success(id, "User deleted successfully");
@@ -197,20 +200,16 @@ public class UserService(
         {
             LogInformation($"Getting user by ID: {id}");
 
-            var user = await _unitOfWork.Repository<User>().Entities
-                .Include(u => u.Role)
-                .Include(u => u.Profile)
-                .Where(u => u.Id == id)
-                .ProjectTo<GetUserDto>(_mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync(cancellationToken);
-
+            var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
                 return Result<GetUserDto>.Failure("User not found");
             }
 
+            var userDto = _mapper.Map<GetUserDto>(user);
+
             LogInformation($"User retrieved successfully with ID: {id}");
-            return Result<GetUserDto>.Success(user);
+            return Result<GetUserDto>.Success(userDto);
         }
         catch (Exception ex)
         {
@@ -225,15 +224,11 @@ public class UserService(
         {
             LogInformation($"Getting all users");
 
-            var users = await _unitOfWork.Repository<User>().Entities
-                .Include(u => u.Role)
-                .Include(u => u.Profile)
-                .Where(u => u.Status == "Active")
-                .ProjectTo<GetAllUsersDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
+            var users = await _userRepository.GetAllAsync();
+            var usersDto = _mapper.Map<List<GetAllUsersDto>>(users);
 
             LogInformation($"Retrieved {users.Count} users successfully");
-            return Result<List<GetAllUsersDto>>.Success(users);
+            return Result<List<GetAllUsersDto>>.Success(usersDto);
         }
         catch (Exception ex)
         {
@@ -248,23 +243,15 @@ public class UserService(
         {
             LogInformation($"Getting users with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var userQuery = _unitOfWork.Repository<User>().Entities
-                .Include(u => u.Role)
-                .Include(u => u.Profile)
-                .Where(u => u.Status == "Active");
-
-            var totalCount = await userQuery.CountAsync(cancellationToken);
+            var totalCount = await _userRepository.GetCountAsync();
             var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
 
-            var users = await userQuery
-                .Skip((query.PageNumber - 1) * query.PageSize)
-                .Take(query.PageSize)
-                .ProjectTo<GetUsersWithPaginationDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
+            var users = await _userRepository.GetPagedAsync(query.PageNumber, query.PageSize);
+            var usersDto = _mapper.Map<List<GetUsersWithPaginationDto>>(users);
 
             var paginatedResult = new PaginatedResult<GetUsersWithPaginationDto>
             {
-                Data = users,
+                Data = usersDto,
                 TotalCount = totalCount,
                 TotalPages = totalPages,
                 CurrentPage = query.PageNumber,

@@ -8,29 +8,30 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
+        // Identity already configures the table name as "AspNetUsers", we can override it
         builder.ToTable("Users");
 
-        builder.Property(e => e.Username)
-            .IsRequired()
-            .HasMaxLength(100);
-
-        builder.Property(e => e.Email)
-            .IsRequired()
-            .HasMaxLength(255);
-
-        builder.Property(e => e.PasswordHash)
-            .IsRequired()
-            .HasMaxLength(500);
-
+        // Configure additional properties (Identity already handles UserName, Email, PasswordHash, etc.)
         builder.Property(e => e.Status)
             .IsRequired()
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .HasDefaultValue("Active");
 
-        builder.HasIndex(e => e.Username)
-            .IsUnique();
+        builder.Property(e => e.RoleId)
+            .IsRequired();
 
-        builder.HasIndex(e => e.Email)
-            .IsUnique();
+        // Configure audit properties
+        builder.Property(e => e.CreatedBy)
+            .HasMaxLength(100);
+
+        builder.Property(e => e.UpdatedBy)
+            .HasMaxLength(100);
+
+        builder.Property(e => e.CreatedDate)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        builder.Property(e => e.IsDeleted)
+            .HasDefaultValue(false);
 
         // Relationships
         builder.HasOne(e => e.Role)
@@ -52,8 +53,5 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(s => s.User)
             .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Apply base configuration
-        new BaseAuditableEntityConfiguration<User>().Configure(builder);
     }
 }
