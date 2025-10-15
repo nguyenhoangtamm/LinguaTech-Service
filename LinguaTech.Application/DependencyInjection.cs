@@ -22,6 +22,12 @@ public static class DependencyInjection
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ICourseService, CourseService>();
         services.AddTransient<IAuthService, AuthService>();
+        services.AddTransient<IModuleService, ModuleService>();
+        services.AddTransient<ILessonService, LessonService>();
+        services.AddTransient<IAssignmentService, AssignmentService>();
+        services.AddTransient<IQuestionService, QuestionService>();
+        services.AddTransient<IMaterialService, MaterialService>();
+        services.AddTransient<IEnrollmentService, EnrollmentService>();
 
         // Register FluentValidation validators from this assembly
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

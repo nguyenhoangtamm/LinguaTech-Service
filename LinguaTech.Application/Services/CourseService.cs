@@ -1,5 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using LinguaTech.Application.Extensions;
 using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Entities;
@@ -242,21 +243,10 @@ public class CourseService : BaseService, ICourseService
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)
                 .ProjectTo<GetCoursesWithPaginationDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
+                .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
 
-            var paginatedResult = new PaginatedResult<GetCoursesWithPaginationDto>
-            {
-                Data = coursesDto,
-                TotalCount = totalCount,
-                TotalPages = totalPages,
-                CurrentPage = query.PageNumber,
-                PageSize = query.PageSize,
-                HasNextPage = query.PageNumber < totalPages,
-                HasPreviousPage = query.PageNumber > 1
-            };
-
-            LogInformation($"Retrieved {coursesDto.Count} courses with pagination successfully");
-            return Result<PaginatedResult<GetCoursesWithPaginationDto>>.Success(paginatedResult);
+            LogInformation($"Retrieved {coursesDto.TotalCount} courses with pagination successfully");
+            return Result<PaginatedResult<GetCoursesWithPaginationDto>>.Success(coursesDto);
         }
         catch (Exception ex)
         {

@@ -243,25 +243,15 @@ public class UserService : BaseService, IUserService
         {
             LogInformation($"Getting users with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var totalCount = await _userRepository.GetCountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
-
             var users = await _userRepository.GetPagedAsync(query.PageNumber, query.PageSize);
+            var totalCount = await _userRepository.GetCountAsync();
+
             var usersDto = _mapper.Map<List<GetUsersWithPaginationDto>>(users);
 
-            var paginatedResult = new PaginatedResult<GetUsersWithPaginationDto>
-            {
-                Data = usersDto,
-                TotalCount = totalCount,
-                TotalPages = totalPages,
-                CurrentPage = query.PageNumber,
-                PageSize = query.PageSize,
-                HasNextPage = query.PageNumber < totalPages,
-                HasPreviousPage = query.PageNumber > 1
-            };
+            var result = PaginatedResult<GetUsersWithPaginationDto>.Create(usersDto, totalCount, query.PageNumber, query.PageSize);
 
-            LogInformation($"Retrieved {users.Count} users with pagination successfully");
-            return Result<PaginatedResult<GetUsersWithPaginationDto>>.Success(paginatedResult);
+            LogInformation($"Retrieved {users.Count} users successfully for page {query.PageNumber}");
+            return Result<PaginatedResult<GetUsersWithPaginationDto>>.Success(result);
         }
         catch (Exception ex)
         {

@@ -56,14 +56,3 @@ public class GetUsersWithPaginationDto : IMapFrom<User>
     public string Email { get; set; } = string.Empty;
     public DateTime? CreatedDate { get; set; }
 }
-
-public class PaginatedResult<T>
-{
-    public List<T> Data { get; set; } = new();
-    public int TotalCount { get; set; }
-    public int TotalPages { get; set; }
-    public int CurrentPage { get; set; }
-    public int PageSize { get; set; }
-    public bool HasNextPage { get; set; }
-    public bool HasPreviousPage { get; set; }
-}
