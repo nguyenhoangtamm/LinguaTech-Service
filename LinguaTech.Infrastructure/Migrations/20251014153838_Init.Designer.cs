@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace LinguaTech.Infrastructure.Persistence.Migrations
+namespace LinguaTech.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251014012009_ConfigureIdentity")]
-    partial class ConfigureIdentity
+    [Migration("20251014153838_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -233,10 +233,8 @@ namespace LinguaTech.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ThumbnailUrl")
                         .IsRequired()
@@ -335,10 +333,8 @@ namespace LinguaTech.Infrastructure.Persistence.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("double precision");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(100)
@@ -1095,12 +1091,10 @@ namespace LinguaTech.Infrastructure.Persistence.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("Active");
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");

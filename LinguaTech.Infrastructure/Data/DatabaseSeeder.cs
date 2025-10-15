@@ -1,4 +1,5 @@
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -65,7 +66,7 @@ public static class DatabaseSeeder
                 UserName = "admin",
                 Email = adminEmail,
                 EmailConfirmed = true,
-                Status = "Active",
+                Status = UserStatus.Active,
                 RoleId = 1 // Assuming Admin role will have ID 1
             };
 

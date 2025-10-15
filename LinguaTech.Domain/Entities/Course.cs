@@ -1,4 +1,5 @@
 using LinguaTech.Domain.Entities.Base;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Domain.Entities;
 
@@ -8,7 +9,7 @@ public class Course : BaseAuditableEntity
     public string Overview { get; set; } = string.Empty;
     public string ThumbnailUrl { get; set; } = string.Empty;
     public int Level { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public CourseStatus Status { get; set; }
     public int Duration { get; set; }
     public int UserId { get; set; }
 

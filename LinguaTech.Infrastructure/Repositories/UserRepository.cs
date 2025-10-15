@@ -1,5 +1,6 @@
 using LinguaTech.Application.Interfaces;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,7 +44,7 @@ public class UserRepository : IUserRepository
         return await _userManager.Users
             .Include(u => u.Role)
             .Include(u => u.Profile)
-            .Where(u => u.Status == "Active")
+            .Where(u => u.Status == UserStatus.Active)
             .ToListAsync();
     }
 
@@ -52,7 +53,7 @@ public class UserRepository : IUserRepository
         return await _userManager.Users
             .Include(u => u.Role)
             .Include(u => u.Profile)
-            .Where(u => u.Status == "Active")
+            .Where(u => u.Status == UserStatus.Active)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -61,7 +62,7 @@ public class UserRepository : IUserRepository
     public async Task<int> GetCountAsync()
     {
         return await _userManager.Users
-            .Where(u => u.Status == "Active")
+            .Where(u => u.Status == UserStatus.Active)
             .CountAsync();
     }
 
@@ -92,7 +93,7 @@ public class UserRepository : IUserRepository
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user != null)
         {
-            user.Status = "Inactive";
+            user.Status = UserStatus.Inactive;
             user.UpdatedDate = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
         }

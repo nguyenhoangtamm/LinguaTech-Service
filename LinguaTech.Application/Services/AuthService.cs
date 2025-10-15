@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using LinguaTech.Domain.Common.Security;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -74,7 +75,7 @@ public class AuthService : IAuthService
                 UserName = username,
                 Email = email,
                 RoleId = roleId,
-                Status = "Active",
+                Status = UserStatus.Active,
                 EmailConfirmed = true // Set to true for now, implement email confirmation later if needed
             };
 

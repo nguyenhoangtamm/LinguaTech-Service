@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Infrastructure.Persistence.Configurations;
 
@@ -11,8 +12,7 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
         builder.ToTable("Enrollments");
 
         builder.Property(e => e.Status)
-            .IsRequired()
-            .HasMaxLength(50);
+            .IsRequired();
 
         builder.Property(e => e.Progress)
             .HasPrecision(5, 2);

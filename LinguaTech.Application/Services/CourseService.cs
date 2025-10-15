@@ -106,8 +106,8 @@ public class CourseService : BaseService, ICourseService
             if (request.Level.HasValue)
                 course.Level = request.Level.Value;
 
-            if (!string.IsNullOrEmpty(request.Status))
-                course.Status = request.Status;
+            if (request.Status.HasValue)
+                course.Status = request.Status.Value;
 
             if (request.Duration.HasValue)
                 course.Duration = request.Duration.Value;
@@ -230,7 +230,7 @@ public class CourseService : BaseService, ICourseService
                 queryable = queryable.Where(c => c.Level == query.Level.Value);
             }
 
-            if (!string.IsNullOrEmpty(query.Status))
+            if (query.Status.HasValue)
             {
                 queryable = queryable.Where(c => c.Status == query.Status);
             }

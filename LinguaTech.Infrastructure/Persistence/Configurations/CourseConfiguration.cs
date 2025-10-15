@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Infrastructure.Persistence.Configurations;
 
@@ -21,8 +22,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .HasMaxLength(500);
 
         builder.Property(e => e.Status)
-            .IsRequired()
-            .HasMaxLength(50);
+            .IsRequired();
 
         // Relationships
         builder.HasOne(e => e.User)

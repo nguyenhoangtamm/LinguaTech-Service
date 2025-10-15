@@ -1,9 +1,9 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using LinguaTech.Application.Interfaces;
 using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
@@ -55,7 +55,7 @@ public class UserService : BaseService, IUserService
                 UserName = request.Username, // Identity uses UserName instead of Username
                 Email = request.Email,
                 RoleId = request.RoleId,
-                Status = "Active",
+                Status = UserStatus.Active,
                 EmailConfirmed = true,
                 CreatedDate = DateTime.UtcNow,
                 CreatedBy = UserName ?? "System"
@@ -131,8 +131,8 @@ public class UserService : BaseService, IUserService
             if (request.RoleId.HasValue)
                 user.RoleId = request.RoleId.Value;
 
-            if (!string.IsNullOrEmpty(request.Status))
-                user.Status = request.Status;
+            if (request.Status.HasValue)
+                user.Status = request.Status.Value;
 
             user.UpdatedDate = DateTime.UtcNow;
             user.UpdatedBy = UserName ?? "System";
@@ -151,7 +151,7 @@ public class UserService : BaseService, IUserService
                     var nameParts = profile.Fullname?.Split(' ') ?? new string[0];
                     var firstName = !string.IsNullOrEmpty(request.FirstName) ? request.FirstName : nameParts.FirstOrDefault() ?? "";
                     var lastName = !string.IsNullOrEmpty(request.LastName) ? request.LastName : nameParts.LastOrDefault() ?? "";
-                    
+
                     profile.Fullname = $"{firstName} {lastName}".Trim();
                     profile.UpdatedDate = DateTime.UtcNow;
                     profile.UpdatedBy = UserName ?? "System";

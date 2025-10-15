@@ -29,7 +29,7 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
             .When(x => !string.IsNullOrEmpty(x.LastName));
 
         RuleFor(x => x.Status)
-            .MaximumLength(50)
-            .When(x => !string.IsNullOrEmpty(x.Status));
+            .IsInEnum()
+            .When(x => x.Status.HasValue);
     }
 }

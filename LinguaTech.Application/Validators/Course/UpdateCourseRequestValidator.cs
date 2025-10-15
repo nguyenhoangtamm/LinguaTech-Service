@@ -1,5 +1,6 @@
 using FluentValidation;
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Application.Validators.Course;
 
@@ -27,9 +28,8 @@ public class UpdateCourseRequestValidator : AbstractValidator<UpdateCourseReques
             .When(x => x.Level.HasValue);
 
         RuleFor(x => x.Status)
-            .Must(status => new[] { "Draft", "Active", "Inactive", "Archived" }.Contains(status!))
-            .WithMessage("Status must be one of: Draft, Active, Inactive, Archived")
-            .When(x => !string.IsNullOrEmpty(x.Status));
+            .IsInEnum().WithMessage("Status must be a valid CourseStatus value")
+            .When(x => x.Status.HasValue);
 
         RuleFor(x => x.Duration)
             .GreaterThan(0).WithMessage("Duration must be greater than 0")

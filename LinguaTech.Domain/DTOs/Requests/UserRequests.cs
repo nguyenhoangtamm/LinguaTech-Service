@@ -1,3 +1,5 @@
+using LinguaTech.Domain.Enums;
+
 namespace LinguaTech.Domain.DTOs.Requests;
 
 public record CreateUserRequest
@@ -19,7 +21,7 @@ public record UpdateUserRequest
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public int? RoleId { get; set; }
-    public string? Status { get; set; }
+    public UserStatus? Status { get; set; }
 }
 
 public record GetUsersWithPaginationQuery
@@ -38,7 +40,7 @@ public record UpdateUserWithIdRequest
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public int? RoleId { get; set; }
-    public string? Status { get; set; }
+    public UserStatus? Status { get; set; }
 }
 
 public record DeleteUserRequest

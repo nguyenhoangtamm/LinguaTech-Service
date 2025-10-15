@@ -1,3 +1,5 @@
+using LinguaTech.Domain.Enums;
+
 namespace LinguaTech.Domain.DTOs.Requests;
 
 public record CreateCourseRequest
@@ -6,7 +8,7 @@ public record CreateCourseRequest
     public string Overview { get; set; } = string.Empty;
     public string ThumbnailUrl { get; set; } = string.Empty;
     public int Level { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public CourseStatus Status { get; set; }
     public int Duration { get; set; }
     public int UserId { get; set; }
 }
@@ -18,7 +20,7 @@ public record UpdateCourseRequest
     public string? Overview { get; set; }
     public string? ThumbnailUrl { get; set; }
     public int? Level { get; set; }
-    public string? Status { get; set; }
+    public CourseStatus? Status { get; set; }
     public int? Duration { get; set; }
     public int? UserId { get; set; }
 }
@@ -29,7 +31,7 @@ public record GetCoursesWithPaginationQuery
     public int PageSize { get; set; } = 10;
     public string? Keyword { get; set; }
     public int? Level { get; set; }
-    public string? Status { get; set; }
+    public CourseStatus? Status { get; set; }
 }
 
 public record UpdateCourseWithIdRequest
@@ -39,7 +41,7 @@ public record UpdateCourseWithIdRequest
     public string? Overview { get; set; }
     public string? ThumbnailUrl { get; set; }
     public int? Level { get; set; }
-    public string? Status { get; set; }
+    public CourseStatus? Status { get; set; }
     public int? Duration { get; set; }
     public int? UserId { get; set; }
 }

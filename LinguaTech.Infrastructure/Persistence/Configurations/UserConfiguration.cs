@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Infrastructure.Persistence.Configurations;
 
@@ -14,8 +15,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Configure additional properties (Identity already handles UserName, Email, PasswordHash, etc.)
         builder.Property(e => e.Status)
             .IsRequired()
-            .HasMaxLength(50)
-            .HasDefaultValue("Active");
+            .HasDefaultValue(UserStatus.Active);
 
         builder.Property(e => e.RoleId)
             .IsRequired();

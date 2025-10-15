@@ -1,5 +1,6 @@
 using LinguaTech.Domain.Common.Mappings;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Domain.DTOs.Responses;
 
@@ -8,14 +9,14 @@ public class UserDto : IMapFrom<User>
     public int Id { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
-    public int Status { get; set; }
+    public UserStatus Status { get; set; }
 }
 
 public class GetUserDto : IMapFrom<User>
 {
     public int Id { get; set; }
     public string Username { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
+    public UserStatus Status { get; set; }
     public int RoleId { get; set; }
     public string RoleName { get; set; } = string.Empty;
     public DateTime? CreatedDate { get; set; }
@@ -39,7 +40,7 @@ public class GetAllUsersDto : IMapFrom<User>
 {
     public int Id { get; set; }
     public string Username { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
+    public UserStatus Status { get; set; }
     public string RoleName { get; set; } = string.Empty;
     public string Fullname { get; set; } = string.Empty;
     public DateTime? CreatedDate { get; set; }
@@ -49,7 +50,7 @@ public class GetUsersWithPaginationDto : IMapFrom<User>
 {
     public int Id { get; set; }
     public string Username { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
+    public UserStatus Status { get; set; }
     public string RoleName { get; set; } = string.Empty;
     public string Fullname { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

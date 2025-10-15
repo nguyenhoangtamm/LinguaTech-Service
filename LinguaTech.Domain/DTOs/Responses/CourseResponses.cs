@@ -1,5 +1,7 @@
 using LinguaTech.Domain.Common.Mappings;
 using LinguaTech.Domain.Entities;
+using LinguaTech.Domain.Enums;
+
 namespace LinguaTech.Domain.DTOs.Responses;
 
 public class CourseResponse
@@ -12,7 +14,7 @@ public class CourseDto : IMapFrom<Course>
     public string Title { get; set; } = string.Empty;
     public string Overview { get; set; } = string.Empty;
     public int Level { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public CourseStatus Status { get; set; }
     public int Duration { get; set; }
 }
 
@@ -23,7 +25,7 @@ public class GetCourseDto : IMapFrom<Course>
     public string Overview { get; set; } = string.Empty;
     public string ThumbnailUrl { get; set; } = string.Empty;
     public int Level { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public CourseStatus Status { get; set; }
     public int Duration { get; set; }
     public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
@@ -39,7 +41,7 @@ public class GetAllCoursesDto : IMapFrom<Course>
     public string Title { get; set; } = string.Empty;
     public string Overview { get; set; } = string.Empty;
     public int Level { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public CourseStatus Status { get; set; }
     public int Duration { get; set; }
     public string UserName { get; set; } = string.Empty;
     public DateTime? CreatedDate { get; set; }
@@ -52,7 +54,7 @@ public class GetCoursesWithPaginationDto : IMapFrom<Course>
     public string Overview { get; set; } = string.Empty;
     public string ThumbnailUrl { get; set; } = string.Empty;
     public int Level { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public CourseStatus Status { get; set; }
     public int Duration { get; set; }
     public string UserName { get; set; } = string.Empty;
     public DateTime? CreatedDate { get; set; }
