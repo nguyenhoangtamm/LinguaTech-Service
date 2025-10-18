@@ -37,6 +37,25 @@ public class MenuTreeResponse : IMapFrom<Menu>
     }
 }
 
+public class UserMenuResponse : IMapFrom<Menu>
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Icon { get; set; }
+    public string? Url { get; set; }
+    public bool? IsBlank { get; set; }
+    public int? ParentId { get; set; }
+    public int Order { get; set; }
+    public List<UserMenuResponse> Children { get; set; } = new();
+
+    public void Mapping(AutoMapper.Profile profile)
+    {
+        profile.CreateMap<Menu, UserMenuResponse>()
+            .ForMember(dest => dest.Url, opt => opt.MapFrom(src => src.Path))
+            .ForMember(dest => dest.IsBlank, opt => opt.MapFrom(src => false)); // Default to false
+    }
+}
+
 public class RoleMenuResponse : IMapFrom<RoleMenu>
 {
     public int Id { get; set; }

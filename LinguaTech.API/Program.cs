@@ -9,6 +9,17 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// CORS ??n gi?n
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers()
     .AddFluentValidation(config =>
     {
@@ -60,6 +71,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// S? d?ng CORS ??n gi?n
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

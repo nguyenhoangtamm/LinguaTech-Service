@@ -9,7 +9,7 @@
   <ItemGroup>
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
 	  <PackageReference Include="Consul" Version="1.7.14.7" />
-	  <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0"/>
+	  <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
 	  <PackageReference Include="Hangfire" Version="1.8.18" />
 	  <PackageReference Include="Hangfire.PostgreSql" Version="1.20.12" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
@@ -32,6 +32,11 @@
   <ItemGroup>
     <ProjectReference Include="..\LinguaTech.Application\LinguaTech.Application.csproj" />
     <ProjectReference Include="..\LinguaTech.Infrastructure\LinguaTech.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Configuration\" />
+    <Folder Include="Extensions\" />
   </ItemGroup>
 
 </Project>

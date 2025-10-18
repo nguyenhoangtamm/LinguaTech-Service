@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LinguaTech.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -25,20 +25,31 @@ public class AuthController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var result = await _authService.LoginAsync(request.Email, request.Password);
+        var result = await _authService.LoginAsync(request.UsernameOrEmail, request.Password);
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new { message = result.ErrorMessage });
+            return BadRequest(new AuthResponse
+            {
+                Data = new AuthData(),
+                Message = result.ErrorMessage ?? "??ng nh?p th?t b?i"
+            });
         }
 
         var response = new AuthResponse
         {
-            Token = result.Token!,
-            UserId = result.UserId!,
-            UserName = result.UserName!,
-            Email = result.Email!,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(60) // Should match JWT settings
+            Data = new AuthData
+            {
+                AccessToken = result.AccessToken!,
+                RefreshToken = result.RefreshToken!,
+                User = new UserInfo
+                {
+                    UserName = result.UserName!,
+                    FullName = result.FullName!,
+                    Role = result.Role!
+                }
+            },
+            Message = "??ng nh?p thành công"
         };
 
         return Ok(response);
@@ -57,16 +68,27 @@ public class AuthController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new { message = result.ErrorMessage });
+            return BadRequest(new AuthResponse
+            {
+                Data = new AuthData(),
+                Message = result.ErrorMessage ?? "??ng ký th?t b?i"
+            });
         }
 
         var response = new AuthResponse
         {
-            Token = result.Token!,
-            UserId = result.UserId!,
-            UserName = result.UserName!,
-            Email = result.Email!,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(60) // Should match JWT settings
+            Data = new AuthData
+            {
+                AccessToken = result.AccessToken!,
+                RefreshToken = result.RefreshToken!,
+                User = new UserInfo
+                {
+                    UserName = result.UserName!,
+                    FullName = result.FullName!,
+                    Role = result.Role!
+                }
+            },
+            Message = "??ng ký thành công"
         };
 
         return Ok(response);
@@ -80,10 +102,10 @@ public class AuthController : ControllerBase
 
         if (!result)
         {
-            return BadRequest(new { message = "Logout failed" });
+            return BadRequest(new { message = "??ng xu?t th?t b?i" });
         }
 
-        return Ok(new { message = "Logged out successfully" });
+        return Ok(new { message = "??ng xu?t thành công" });
     }
 
     [HttpGet("me")]
@@ -101,7 +123,7 @@ public class AuthController : ControllerBase
         
         if (user == null)
         {
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { message = "Không tìm th?y ng??i dùng" });
         }
 
         return Ok(new
@@ -112,5 +134,44 @@ public class AuthController : ControllerBase
             roleId = user.RoleId,
             status = user.Status
         });
+    }
+
+    [HttpPost("refresh-token")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new AuthResponse
+            {
+                Data = new AuthData(),
+                Message = result.ErrorMessage ?? "Làm m?i token th?t b?i"
+            });
+        }
+
+        var response = new AuthResponse
+        {
+            Data = new AuthData
+            {
+                AccessToken = result.AccessToken!,
+                RefreshToken = result.RefreshToken!,
+                User = new UserInfo
+                {
+                    UserName = result.UserName!,
+                    FullName = result.FullName!,
+                    Role = result.Role!
+                }
+            },
+            Message = "Làm m?i token thành công"
+        };
+
+        return Ok(response);
     }
 }

@@ -125,6 +125,32 @@ public class MenusController : ApiControllerBase
     }
 
     /// <summary>
+    /// Get menu tree for current authenticated user
+    /// </summary>
+    /// <returns>Menu tree with permissions for the current user's role</returns>
+    [HttpGet("GetMenusByUserRoles")]
+    public async Task<ActionResult<Result<List<UserMenuResponse>>>> GetMenusByUserRoles(CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation("Getting menus by user roles");
+            var result = await _menuService.GetMenusByUserRoles(cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            LogError("Error occurred while getting menus by user roles", ex);
+            return StatusCode(500, "Internal server error occurred while getting user menus");
+        }
+    }
+
+    /// <summary>
     /// Create new menu
     /// </summary>
     /// <param name="request">Menu creation request</param>
@@ -157,7 +183,7 @@ public class MenusController : ApiControllerBase
     /// <param name="id">Menu ID</param>
     /// <param name="request">Menu update request</param>
     /// <returns>Updated menu ID</returns>
-    [HttpPut("{id}")]
+    [HttpPost("update/{id}")]
     public async Task<ActionResult<Result<int>>> Update(int id, [FromBody] UpdateMenuRequest request, CancellationToken cancellationToken)
     {
         try
@@ -184,7 +210,7 @@ public class MenusController : ApiControllerBase
     /// </summary>
     /// <param name="id">Menu ID</param>
     /// <returns>Success status</returns>
-    [HttpDelete("{id}")]
+    [HttpPost("delete/{id}")]
     public async Task<ActionResult<Result<bool>>> Delete(int id, CancellationToken cancellationToken)
     {
         try
@@ -204,13 +230,11 @@ public class MenusController : ApiControllerBase
             LogError($"Error occurred while deleting menu: {id}", ex);
             return StatusCode(500, "Internal server error occurred while deleting menu");
         }
-    }
-
-    /// <summary>
-    /// Assign menus to role
-    /// </summary>
-    /// <param name="request">Menu assignment request</param>
-    /// <returns>Success status</returns>
+    }    /// <summary>
+         /// Assign menus to role
+         /// </summary>
+         /// <param name="request">Menu assignment request</param>
+         /// <returns>Success status</returns>
     [HttpPost("assign-to-role")]
     public async Task<ActionResult<Result<int>>> AssignMenusToRole([FromBody] AssignMenuToRoleRequest request, CancellationToken cancellationToken)
     {

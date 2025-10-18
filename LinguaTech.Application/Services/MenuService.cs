@@ -18,18 +18,21 @@ namespace LinguaTech.Application.Services;
 public class MenuService : BaseService, IMenuService
 {
     private readonly RoleManager<Role> _roleManager;
+    private readonly UserManager<User> _userManager;
     private readonly IValidator<CreateMenuRequest> _createMenuValidator;
     private readonly IValidator<UpdateMenuRequest> _updateMenuValidator;
     private readonly IValidator<AssignMenuToRoleRequest> _assignMenuToRoleValidator;
 
     public MenuService(IHttpContextAccessor httpContextAccessor, ILogger<MenuService> logger,
         IUnitOfWork unitOfWork, IMapper mapper, RoleManager<Role> roleManager,
+        UserManager<User> userManager,
         IValidator<CreateMenuRequest> createMenuValidator,
         IValidator<UpdateMenuRequest> updateMenuValidator,
         IValidator<AssignMenuToRoleRequest> assignMenuToRoleValidator)
         : base(httpContextAccessor, logger, unitOfWork, mapper)
     {
         _roleManager = roleManager;
+        _userManager = userManager;
         _createMenuValidator = createMenuValidator;
         _updateMenuValidator = updateMenuValidator;
         _assignMenuToRoleValidator = assignMenuToRoleValidator;
@@ -139,6 +142,46 @@ public class MenuService : BaseService, IMenuService
         {
             LogError($"Error occurred while getting menu tree by role ID: {roleId}", ex);
             return Result<List<MenuTreeResponse>>.Failure("Failed to retrieve role menu tree");
+        }
+    }
+
+    public async Task<Result<List<UserMenuResponse>>> GetMenusByUserRoles(CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation("Getting menus by user roles");
+
+            // Get current user's username from context
+            var userName = UserName;
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Result<List<UserMenuResponse>>.Failure("User not authenticated");
+            }
+
+            // Get user by username using UserManager
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user == null)
+            {
+                return Result<List<UserMenuResponse>>.Failure("User not found");
+            }
+
+            // Get user's role menus
+            var roleMenus = await _unitOfWork.Repository<RoleMenu>()
+                .Entities
+                .Include(rm => rm.Menu)
+                .Where(rm => rm.RoleId == user.RoleId && !rm.IsDeleted && !rm.Menu.IsDeleted)
+                .Select(rm => rm.Menu)
+                .OrderBy(m => m.Order)
+                .ToListAsync(cancellationToken);
+
+            var menuTree = BuildUserMenuTree(roleMenus, null);
+
+            return Result<List<UserMenuResponse>>.Success(menuTree, "User menus retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError("Error occurred while getting menus by user roles", ex);
+            return Result<List<UserMenuResponse>>.Failure("Failed to retrieve user menus");
         }
     }
 
@@ -380,6 +423,25 @@ public class MenuService : BaseService, IMenuService
                 ParentId = m.ParentId,
                 HasPermission = authorizedMenus.Any(am => am.Id == m.Id),
                 Children = BuildMenuTreeWithPermissions(allMenus, authorizedMenus, m.Id)
+            })
+            .OrderBy(m => m.Order)
+            .ToList();
+    }
+
+    private List<UserMenuResponse> BuildUserMenuTree(List<Menu> userMenus, int? parentId)
+    {
+        return userMenus
+            .Where(m => m.ParentId == parentId)
+            .Select(m => new UserMenuResponse
+            {
+                Id = m.Id,
+                Name = m.Name,
+                Icon = string.IsNullOrEmpty(m.Icon) ? null : m.Icon,
+                Url = string.IsNullOrEmpty(m.Path) ? null : m.Path,
+                IsBlank = false, // Default to false, can be customized based on requirements
+                ParentId = m.ParentId,
+                Order = m.Order,
+                Children = BuildUserMenuTree(userMenus, m.Id)
             })
             .OrderBy(m => m.Order)
             .ToList();

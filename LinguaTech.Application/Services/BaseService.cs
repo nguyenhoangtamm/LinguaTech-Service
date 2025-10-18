@@ -2,6 +2,7 @@ using AutoMapper;
 using LinguaTech.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace LinguaTech.Application.Services;
 
@@ -28,7 +29,32 @@ public abstract class BaseService
 
     protected string? UserName
     {
-        get { return _httpContextAccessor.HttpContext?.Items["UserName"]?.ToString(); }
+        get 
+        { 
+            // L?y t? JWT claims tr??c
+            var username = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;
+            if (!string.IsNullOrEmpty(username))
+                return username;
+                
+            // Fallback v? Items n?u có
+            return _httpContextAccessor.HttpContext?.Items["UserName"]?.ToString(); 
+        }
+    }
+
+    protected string? UserId
+    {
+        get
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+    }
+
+    protected string? UserEmail
+    {
+        get
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+        }
     }
 
     protected List<string> Roles
@@ -37,12 +63,19 @@ public abstract class BaseService
         {
             try
             {
-                return _httpContextAccessor.HttpContext?.Items["Roles"] as List<string>;
+                // L?y t? JWT claims tr??c
+                var roles = _httpContextAccessor.HttpContext?.User?.FindAll(ClaimTypes.Role)?
+                    .Select(c => c.Value).ToList();
+                if (roles != null && roles.Any())
+                    return roles;
+                    
+                // Fallback v? Items n?u có
+                return _httpContextAccessor.HttpContext?.Items["Roles"] as List<string> ?? new List<string>();
             }
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
-                return null;
+                return new List<string>();
             }
         }
     }

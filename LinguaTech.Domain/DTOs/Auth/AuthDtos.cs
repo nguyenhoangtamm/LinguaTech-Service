@@ -5,8 +5,7 @@ namespace LinguaTech.Domain.DTOs.Auth;
 public class LoginRequest
 {
     [Required]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    public string UsernameOrEmail { get; set; } = string.Empty;
 
     [Required]
     [MinLength(6)]
@@ -33,15 +32,32 @@ public class RegisterRequest
 
 public class AuthResponse
 {
-    public string Token { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public AuthData Data { get; set; } = new();
+    public string Message { get; set; } = string.Empty;
+}
+
+public class AuthData
+{
+    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public UserInfo User { get; set; } = new();
+}
+
+public class UserInfo
+{
     public string UserName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public DateTime ExpiresAt { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
 }
 
 public class LogoutRequest
 {
     [Required]
     public string UserId { get; set; } = string.Empty;
+}
+
+public class RefreshTokenRequest
+{
+    [Required]
+    public string RefreshToken { get; set; } = string.Empty;
 }
