@@ -22,6 +22,8 @@ public abstract class BaseService
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
+    protected IHttpContextAccessor HttpContextAccessor => _httpContextAccessor;
+
     protected string? ProfileCode
     {
         get { return _httpContextAccessor.HttpContext?.Items["ProfileCode"]?.ToString(); }

@@ -1,6 +1,7 @@
 ﻿using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
@@ -162,6 +163,30 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         {
             LogError("Error getting users with pagination", ex);
             return StatusCode(500, "An error occurred while retrieving users");
+        }
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMe(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            LogInformation("Getting current user information");
+
+            var result = await _userService.GetMe(cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return NotFound(result);
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting current user information", ex);
+            return StatusCode(500, "An error occurred while retrieving current user information");
         }
     }
 }

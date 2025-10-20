@@ -37,6 +37,10 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, int>
     public DbSet<QuestionOption> QuestionOptions { get; set; }
     public DbSet<Answer> Answers { get; set; }
     public DbSet<Submission> Submissions { get; set; }
+    
+    // JWT Security
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<TokenBlacklist> TokenBlacklists { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

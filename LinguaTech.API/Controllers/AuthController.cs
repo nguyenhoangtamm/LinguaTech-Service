@@ -1,5 +1,5 @@
+﻿using LinguaTech.Application.Services;
 using LinguaTech.Domain.DTOs.Auth;
-using LinguaTech.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,14 +25,18 @@ public class AuthController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var result = await _authService.LoginAsync(request.UsernameOrEmail, request.Password);
+        // Get device info and IP address for security tracking
+        var deviceInfo = Request.Headers.UserAgent.ToString();
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        var result = await _authService.LoginAsync(request.UsernameOrEmail, request.Password, deviceInfo, ipAddress);
 
         if (!result.IsSuccess)
         {
             return BadRequest(new AuthResponse
             {
                 Data = new AuthData(),
-                Message = result.ErrorMessage ?? "??ng nh?p th?t b?i"
+                Message = result.ErrorMessage ?? "Đăng nhập thất bại"
             });
         }
 
@@ -49,7 +53,7 @@ public class AuthController : ControllerBase
                     Role = result.Role!
                 }
             },
-            Message = "??ng nh?p th�nh c�ng"
+            Message = "Đăng nhập thành công"
         };
 
         return Ok(response);
@@ -71,7 +75,7 @@ public class AuthController : ControllerBase
             return BadRequest(new AuthResponse
             {
                 Data = new AuthData(),
-                Message = result.ErrorMessage ?? "??ng k� th?t b?i"
+                Message = result.ErrorMessage ?? "Đăng ký thất bại"
             });
         }
 
@@ -88,7 +92,7 @@ public class AuthController : ControllerBase
                     Role = result.Role!
                 }
             },
-            Message = "??ng k� th�nh c�ng"
+            Message = "Đăng ký thành công"
         };
 
         return Ok(response);
@@ -98,20 +102,6 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
     {
-        var result = await _authService.LogoutAsync(request.UserId);
-
-        if (!result)
-        {
-            return BadRequest(new { message = "??ng xu?t th?t b?i" });
-        }
-
-        return Ok(new { message = "??ng xu?t th�nh c�ng" });
-    }
-
-    [HttpGet("me")]
-    [Authorize]
-    public async Task<IActionResult> GetCurrentUser()
-    {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         
         if (string.IsNullOrEmpty(userId))
@@ -119,11 +109,35 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
+        // Get access token from Authorization header for blacklisting
+        var accessToken = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
+
+        var result = await _authService.LogoutAsync(userId, accessToken);
+
+        if (!result)
+        {
+            return BadRequest(new { message = "Đăng xuất thất bại" });
+        }
+
+        return Ok(new { message = "Đăng xuất thành công" });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
         var user = await _authService.GetUserByIdAsync(userId);
-        
+
         if (user == null)
         {
-            return NotFound(new { message = "Kh�ng t�m th?y ng??i d�ng" });
+            return NotFound(new { message = "Không tìm thấy người dùng" });
         }
 
         return Ok(new
@@ -152,7 +166,7 @@ public class AuthController : ControllerBase
             return BadRequest(new AuthResponse
             {
                 Data = new AuthData(),
-                Message = result.ErrorMessage ?? "L�m m?i token th?t b?i"
+                Message = result.ErrorMessage ?? "Làm mới token thất bại"
             });
         }
 
@@ -169,7 +183,7 @@ public class AuthController : ControllerBase
                     Role = result.Role!
                 }
             },
-            Message = "L�m m?i token th�nh c�ng"
+            Message = "Làm mới token thành công"
         };
 
         return Ok(response);

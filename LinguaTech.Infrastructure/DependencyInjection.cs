@@ -2,6 +2,7 @@ using LinguaTech.Application.Interfaces;
 using LinguaTech.Domain.Common.Security;
 using LinguaTech.Domain.Entities;
 using LinguaTech.Domain.Interfaces;
+using LinguaTech.Domain.Interfaces.Repositories;
 using LinguaTech.Infrastructure.Persistence;
 using LinguaTech.Infrastructure.Repositories;
 using LinguaTech.Infrastructure.Services;
@@ -21,6 +22,9 @@ public static class DependencyInjection
 
         // Register infrastructure services
         services.AddScoped<IJwtService, JwtService>();
+
+        // Register background services
+        services.AddHostedService<TokenCleanupService>();
 
         // Register DbContext (PostgreSQL as default if connection string provided). Ensure you have a connection string named "DefaultConnection" in appsettings.
         var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -62,6 +66,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         return services;
     }

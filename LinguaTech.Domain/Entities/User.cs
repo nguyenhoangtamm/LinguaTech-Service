@@ -20,4 +20,8 @@ public class User : IdentityUser<int>, IAuditableEntity
     public virtual Profile? Profile { get; set; }
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+    
+    // JWT-related navigation properties
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public virtual ICollection<TokenBlacklist> TokenBlacklists { get; set; } = new List<TokenBlacklist>();
 }

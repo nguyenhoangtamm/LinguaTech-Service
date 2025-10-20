@@ -1,13 +1,45 @@
 using System.Reflection;
 using AutoMapper;
+using LinguaTech.Domain.DTOs.Responses;
+using LinguaTech.Domain.Entities;
+using ProfileEntity = LinguaTech.Domain.Entities.Profile;
 
 namespace LinguaTech.Domain.Common.Mappings;
 
-public class MappingProfile : Profile
+public class MappingProfile : AutoMapper.Profile
 {
     public MappingProfile()
     {
         ApplyMappingsFromAssembly(Assembly.GetExecutingAssembly());
+        CreateCustomMappings();
+    }
+
+    private void CreateCustomMappings()
+    {
+        // User to GetUserDto mapping with custom logic
+        CreateMap<User, GetUserDto>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName))
+            .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Fullname : string.Empty))
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : string.Empty));
+
+        // User to GetAllUsersDto mapping
+        CreateMap<User, GetAllUsersDto>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName))
+            .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Fullname : string.Empty))
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : string.Empty));
+
+        // User to GetUsersWithPaginationDto mapping
+        CreateMap<User, GetUsersWithPaginationDto>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName))
+            .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Fullname : string.Empty))
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : string.Empty));
+
+        // User to UserDto mapping
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Profile != null ? src.Profile.Fullname : string.Empty));
+
+        // Profile to ProfileDto mapping
+        CreateMap<ProfileEntity, ProfileDto>();
     }
 
     private void ApplyMappingsFromAssembly(Assembly assembly)
@@ -20,7 +52,7 @@ public class MappingProfile : Profile
 
         var types = assembly.GetExportedTypes().Where(t => t.GetInterfaces().Any(HasInterface)).ToList();
 
-        var argumentTypes = new Type[] { typeof(Profile) };
+        var argumentTypes = new Type[] { typeof(AutoMapper.Profile) };
 
         foreach (var type in types)
         {
@@ -42,7 +74,7 @@ public class MappingProfile : Profile
                     {
                         var interfaceMethodInfo = @interface.GetMethod(mappingMethodName, argumentTypes);
 
-                        interfaceMethodInfo.Invoke(instance, new object[] { this });
+                        interfaceMethodInfo?.Invoke(instance, new object[] { this });
                     }
                 }
             }

@@ -10,6 +10,7 @@ using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 using ProfileEntity = LinguaTech.Domain.Entities.Profile;
 
 namespace LinguaTech.Application.Services;
@@ -257,6 +258,42 @@ public class UserService : BaseService, IUserService
         {
             LogError("Error getting users with pagination", ex);
             return Result<PaginatedResult<GetUsersWithPaginationDto>>.Failure("An error occurred while retrieving users");
+        }
+    }
+
+    public async Task<Result<GetUserDto>> GetMe(CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation("Getting current user information");
+
+            // L?y User ID t? JWT token
+            var userIdClaim = HttpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                LogError("User ID not found in token", null!);
+                return Result<GetUserDto>.Failure("User not authenticated");
+            }
+
+            LogInformation($"Getting current user with ID: {userId}");
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                LogError($"User not found with ID: {userId}", null!);
+                return Result<GetUserDto>.Failure("User not found");
+            }
+
+            var userDto = _mapper.Map<GetUserDto>(user);
+
+            LogInformation($"Current user retrieved successfully with ID: {userId}");
+            return Result<GetUserDto>.Success(userDto, "Current user information retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting current user information", ex);
+            return Result<GetUserDto>.Failure("An error occurred while retrieving current user information");
         }
     }
 }

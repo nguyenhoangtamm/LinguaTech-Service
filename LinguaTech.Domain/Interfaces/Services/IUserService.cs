@@ -12,4 +12,5 @@ public interface IUserService
     Task<Result<GetUserDto>> GetById(int id, CancellationToken cancellationToken);
     Task<Result<List<GetAllUsersDto>>> GetAll(CancellationToken cancellationToken);
     Task<Result<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination(GetUsersWithPaginationQuery query, CancellationToken cancellationToken);
+    Task<Result<GetUserDto>> GetMe(CancellationToken cancellationToken);
 }

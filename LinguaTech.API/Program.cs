@@ -1,5 +1,6 @@
 using System.Text;
 using FluentValidation.AspNetCore;
+using LinguaTech.API.Middleware;
 using LinguaTech.Application;
 using LinguaTech.Domain.Common.Security;
 using LinguaTech.Infrastructure;
@@ -74,6 +75,9 @@ app.UseHttpsRedirection();
 
 // S? d?ng CORS ??n gi?n
 app.UseCors();
+
+// Use JWT blacklist middleware before authentication
+app.UseMiddleware<JwtBlacklistMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

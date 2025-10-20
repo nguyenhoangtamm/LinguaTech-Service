@@ -2,6 +2,7 @@ using System.Security.Claims;
 using LinguaTech.Domain.Common.Security;
 using LinguaTech.Domain.Entities;
 using LinguaTech.Domain.Enums;
+using LinguaTech.Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,10 +11,10 @@ namespace LinguaTech.Application.Services;
 
 public interface IAuthService
 {
-    Task<AuthResult> LoginAsync(string usernameOrEmail, string password);
+    Task<AuthResult> LoginAsync(string usernameOrEmail, string password, string? deviceInfo = null, string? ipAddress = null);
     Task<AuthResult> RegisterAsync(string email, string password, string username, int roleId);
     Task<AuthResult> RefreshTokenAsync(string refreshToken);
-    Task<bool> LogoutAsync(string userId);
+    Task<bool> LogoutAsync(string userId, string? accessToken = null);
     Task<User?> GetUserByIdAsync(string userId);
 }
 
@@ -23,6 +24,7 @@ public class AuthService : IAuthService
     private readonly SignInManager<User> _signInManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly IJwtService _jwtService;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -30,16 +32,18 @@ public class AuthService : IAuthService
         SignInManager<User> signInManager,
         RoleManager<Role> roleManager,
         IJwtService jwtService,
+        IRefreshTokenRepository refreshTokenRepository,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _roleManager = roleManager;
         _jwtService = jwtService;
+        _refreshTokenRepository = refreshTokenRepository;
         _logger = logger;
     }
 
-    public async Task<AuthResult> LoginAsync(string usernameOrEmail, string password)
+    public async Task<AuthResult> LoginAsync(string usernameOrEmail, string password, string? deviceInfo = null, string? ipAddress = null)
     {
         try
         {
@@ -54,7 +58,7 @@ public class AuthService : IAuthService
                     .FirstOrDefaultAsync(u => u.Email == usernameOrEmail);
             }
             
-            // N?u không tìm th?y b?ng email ho?c input không ph?i email, th? tìm b?ng username
+            // N?u không tìm th?y b?ng email ho?c input không ph?i email, thì tìm b?ng username
             if (user == null)
             {
                 user = await _userManager.Users
@@ -81,7 +85,7 @@ public class AuthService : IAuthService
             var fullName = user.Profile?.Fullname ?? user.UserName ?? "Unknown";
 
             var accessToken = await GenerateJwtTokenAsync(user);
-            var refreshToken = await GenerateRefreshTokenAsync(user);
+            var refreshToken = await GenerateAndStoreRefreshTokenAsync(user, deviceInfo, ipAddress);
 
             return AuthResult.Success(
                 accessToken, 
@@ -142,7 +146,7 @@ public class AuthService : IAuthService
             var roleName = user?.Role?.Name ?? "Unknown";
 
             var accessToken = await GenerateJwtTokenAsync(user!);
-            var refreshToken = await GenerateRefreshTokenAsync(user!);
+            var refreshToken = await GenerateAndStoreRefreshTokenAsync(user!);
 
             return AuthResult.Success(
                 accessToken,
@@ -165,7 +169,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            // Validate refresh token
+            // Validate refresh token format
             var principal = _jwtService.ValidateToken(refreshToken);
             if (principal == null)
             {
@@ -186,6 +190,19 @@ public class AuthService : IAuthService
                 return AuthResult.Failed("Invalid user ID in token.");
             }
 
+            // Ki?m tra refresh token trong database
+            var tokenHash = _jwtService.ComputeTokenHash(refreshToken);
+            
+            // Use JWT service to validate refresh token
+            var isValidToken = await _jwtService.IsRefreshTokenValidAsync(tokenHash, userId);
+            if (!isValidToken)
+            {
+                return AuthResult.Failed("Refresh token not found or expired.");
+            }
+
+            // Get stored token for device info
+            var storedToken = await _refreshTokenRepository.GetByTokenHashAndUserIdAsync(tokenHash, userId);
+
             // Tìm user
             var user = await _userManager.Users
                 .Include(u => u.Profile)
@@ -197,9 +214,12 @@ public class AuthService : IAuthService
                 return AuthResult.Failed("User not found.");
             }
 
+            // Revoke old refresh token (token rotation)
+            await _jwtService.RevokeRefreshTokenAsync(tokenHash, userId);
+
             // T?o token m?i
             var newAccessToken = await GenerateJwtTokenAsync(user);
-            var newRefreshToken = await GenerateRefreshTokenAsync(user);
+            var newRefreshToken = await GenerateAndStoreRefreshTokenAsync(user, storedToken?.DeviceInfo, storedToken?.IpAddress);
 
             // Get user info
             var roleName = user.Role?.Name ?? "Unknown";
@@ -222,12 +242,25 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<bool> LogoutAsync(string userId)
+    public async Task<bool> LogoutAsync(string userId, string? accessToken = null)
     {
         try
         {
-            await _signInManager.SignOutAsync();
-            return true;
+            if (int.TryParse(userId, out var userIdInt))
+            {
+                // Revoke all refresh tokens for the user
+                await _jwtService.RevokeAllUserRefreshTokensAsync(userIdInt);
+
+                // Blacklist the current access token if provided
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    await _jwtService.BlacklistTokenAsync(accessToken, "access", userIdInt, "User logout");
+                }
+
+                await _signInManager.SignOutAsync();
+                return true;
+            }
+            return false;
         }
         catch (Exception ex)
         {
@@ -263,7 +296,8 @@ public class AuthService : IAuthService
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.UserName!),
             new(ClaimTypes.Email, user.Email!),
-            new("RoleId", user.RoleId.ToString())
+            new("RoleId", user.RoleId.ToString()),
+            new("jti", Guid.NewGuid().ToString()) // Unique token ID
         };
 
         // Add role claims if needed
@@ -273,7 +307,7 @@ public class AuthService : IAuthService
         return _jwtService.GenerateToken(claims);
     }
 
-    private async Task<string> GenerateRefreshTokenAsync(User user)
+    private async Task<string> GenerateAndStoreRefreshTokenAsync(User user, string? deviceInfo = null, string? ipAddress = null)
     {
         var claims = new List<Claim>
         {
@@ -282,7 +316,22 @@ public class AuthService : IAuthService
             new(ClaimTypes.Email, user.Email!)
         };
 
-        return _jwtService.GenerateRefreshToken(claims);
+        var refreshToken = _jwtService.GenerateRefreshToken(claims);
+        var tokenHash = _jwtService.ComputeTokenHash(refreshToken);
+
+        // Store refresh token in database
+        var refreshTokenEntity = new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            ExpiresAt = DateTime.UtcNow.AddDays(7), // 7 days
+            DeviceInfo = deviceInfo,
+            IpAddress = ipAddress
+        };
+
+        await _refreshTokenRepository.CreateAsync(refreshTokenEntity);
+
+        return refreshToken;
     }
 
     private static bool IsValidEmail(string email)
