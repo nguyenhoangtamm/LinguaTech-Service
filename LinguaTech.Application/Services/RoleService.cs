@@ -227,7 +227,7 @@ public class RoleService : BaseService, IRoleService
 
             var result = new
             {
-                Data = roles,
+                data = roles, // Changed from "Data" to "data" (lowercase)
                 TotalCount = totalCount,
                 TotalPages = totalPages,
                 CurrentPage = query.PageNumber,

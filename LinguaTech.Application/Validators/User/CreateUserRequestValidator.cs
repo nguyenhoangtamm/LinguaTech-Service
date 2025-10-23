@@ -1,5 +1,6 @@
 using FluentValidation;
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Application.Validators.User;
 
@@ -25,6 +26,9 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 
         RuleFor(x => x.LastName)
             .MaximumLength(100);
+
+        RuleFor(x => x.Gender)
+            .IsInEnum().WithMessage("Gender must be a valid value (Male, Female, or Other)");
 
         RuleFor(x => x.RoleId)
             .GreaterThan(0).WithMessage("RoleId must be greater than 0");

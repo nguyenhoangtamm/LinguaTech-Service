@@ -21,6 +21,8 @@ public static class DependencyInjection
         // Register application services
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ICourseService, CourseService>();
+        services.AddTransient<ICourseTypeService, CourseTypeService>();
+        services.AddTransient<ICourseTagService, CourseTagService>();
         services.AddTransient<IAuthService, AuthService>();
         services.AddTransient<IModuleService, ModuleService>();
         services.AddTransient<ILessonService, LessonService>();

@@ -30,6 +30,11 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(e => e.CourseType)
+            .WithMany(ct => ct.Courses)
+            .HasForeignKey(e => e.CourseTypeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasMany(e => e.Classes)
             .WithOne(c => c.Course)
             .HasForeignKey(c => c.CourseId)
@@ -43,6 +48,11 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.HasMany(e => e.CourseMaterials)
             .WithOne(cm => cm.Course)
             .HasForeignKey(cm => cm.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(e => e.CourseTags)
+            .WithOne(cct => cct.Course)
+            .HasForeignKey(cct => cct.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Apply base configuration

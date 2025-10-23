@@ -19,6 +19,9 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, int>
 
     // Course Management
     public DbSet<Course> Courses { get; set; }
+    public DbSet<CourseType> CourseTypes { get; set; }
+    public DbSet<CourseTag> CourseTags { get; set; }
+    public DbSet<CourseCourseTag> CourseCourseTags { get; set; }
     public DbSet<Class> Classes { get; set; }
     public DbSet<Enrollment> Enrollments { get; set; }
     public DbSet<Module> Modules { get; set; }

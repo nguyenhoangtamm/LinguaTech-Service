@@ -28,6 +28,10 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
             .MaximumLength(100)
             .When(x => !string.IsNullOrEmpty(x.LastName));
 
+        RuleFor(x => x.Gender)
+            .IsInEnum().WithMessage("Gender must be a valid value (Male, Female, or Other)")
+            .When(x => x.Gender.HasValue);
+
         RuleFor(x => x.Status)
             .IsInEnum()
             .When(x => x.Status.HasValue);

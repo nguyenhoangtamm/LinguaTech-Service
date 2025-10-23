@@ -11,6 +11,8 @@ public record CreateCourseRequest
     public CourseStatus Status { get; set; }
     public int Duration { get; set; }
     public int UserId { get; set; }
+    public int? CourseTypeId { get; set; }
+    public List<int> TagIds { get; set; } = new List<int>();
 }
 
 public record UpdateCourseRequest
@@ -23,6 +25,8 @@ public record UpdateCourseRequest
     public CourseStatus? Status { get; set; }
     public int? Duration { get; set; }
     public int? UserId { get; set; }
+    public int? CourseTypeId { get; set; }
+    public List<int>? TagIds { get; set; }
 }
 
 public record GetCoursesWithPaginationQuery
@@ -32,6 +36,8 @@ public record GetCoursesWithPaginationQuery
     public string? Keyword { get; set; }
     public int? Level { get; set; }
     public CourseStatus? Status { get; set; }
+    public int? CourseTypeId { get; set; }
+    public List<int>? TagIds { get; set; }
 }
 
 public record UpdateCourseWithIdRequest
@@ -44,6 +50,8 @@ public record UpdateCourseWithIdRequest
     public CourseStatus? Status { get; set; }
     public int? Duration { get; set; }
     public int? UserId { get; set; }
+    public int? CourseTypeId { get; set; }
+    public List<int>? TagIds { get; set; }
 }
 
 public record DeleteCourseRequest

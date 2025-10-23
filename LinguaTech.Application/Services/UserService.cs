@@ -1,3 +1,4 @@
+﻿using System.Security.Claims;
 using AutoMapper;
 using LinguaTech.Application.Interfaces;
 using LinguaTech.Domain.DTOs.Requests;
@@ -10,7 +11,6 @@ using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using ProfileEntity = LinguaTech.Domain.Entities.Profile;
 
 namespace LinguaTech.Application.Services;
@@ -71,6 +71,12 @@ public class UserService : BaseService, IUserService
                 UserId = user.Id,
                 Fullname = $"{request.FirstName} {request.LastName}".Trim(),
                 Email = request.Email,
+                Gender = request.Gender.ToString(),
+                BirthDate = DateTime.MinValue, // Default birth date to avoid null
+                Address = string.Empty, // Use empty string to avoid not-null constraint
+                Bio = string.Empty, // Use empty string to avoid not-null constraint
+                PhoneNumber = string.Empty, // Use empty string to avoid not-null constraint
+                AvatarUrl = string.Empty, // Use empty string to avoid not-null constraint
                 CreatedDate = DateTime.UtcNow,
                 CreatedBy = UserName ?? "System"
             };
@@ -138,22 +144,30 @@ public class UserService : BaseService, IUserService
             user.UpdatedDate = DateTime.UtcNow;
             user.UpdatedBy = UserName ?? "System";
 
-            // Update user
-            await _userRepository.UpdateAsync(user);
-
-            // Update profile if FirstName or LastName provided
-            if (!string.IsNullOrEmpty(request.FirstName) || !string.IsNullOrEmpty(request.LastName))
+            // Update profile if FirstName, LastName, or Gender provided
+            if (!string.IsNullOrEmpty(request.FirstName) || !string.IsNullOrEmpty(request.LastName) || request.Gender.HasValue)
             {
                 var profile = await _unitOfWork.Repository<ProfileEntity>().Entities
                     .FirstOrDefaultAsync(p => p.UserId == id, cancellationToken);
 
                 if (profile != null)
                 {
-                    var nameParts = profile.Fullname?.Split(' ') ?? new string[0];
-                    var firstName = !string.IsNullOrEmpty(request.FirstName) ? request.FirstName : nameParts.FirstOrDefault() ?? "";
-                    var lastName = !string.IsNullOrEmpty(request.LastName) ? request.LastName : nameParts.LastOrDefault() ?? "";
+                    // Update name if provided
+                    if (!string.IsNullOrEmpty(request.FirstName) || !string.IsNullOrEmpty(request.LastName))
+                    {
+                        var nameParts = profile.Fullname?.Split(' ') ?? new string[0];
+                        var firstName = !string.IsNullOrEmpty(request.FirstName) ? request.FirstName : nameParts.FirstOrDefault() ?? "";
+                        var lastName = !string.IsNullOrEmpty(request.LastName) ? request.LastName : nameParts.LastOrDefault() ?? "";
 
-                    profile.Fullname = $"{firstName} {lastName}".Trim();
+                        profile.Fullname = $"{firstName} {lastName}".Trim();
+                    }
+
+                    // Update gender if provided
+                    if (request.Gender.HasValue)
+                    {
+                        profile.Gender = request.Gender.Value.ToString();
+                    }
+
                     profile.UpdatedDate = DateTime.UtcNow;
                     profile.UpdatedBy = UserName ?? "System";
                 }
@@ -267,13 +281,13 @@ public class UserService : BaseService, IUserService
         {
             LogInformation("Getting current user information");
 
-            // L?y User ID t? JWT token
+            // Lấy User ID từ JWT token
             var userIdClaim = HttpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
+
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
-                LogError("User ID not found in token", null!);
-                return Result<GetUserDto>.Failure("User not authenticated");
+                LogError("User ID not found in token or invalid format", null!);
+                return Result<GetUserDto>.Failure("User not authenticated or invalid token");
             }
 
             LogInformation($"Getting current user with ID: {userId}");

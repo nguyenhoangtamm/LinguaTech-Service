@@ -9,6 +9,7 @@ public record CreateUserRequest
     public string Password { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
+    public Gender Gender { get; set; } = Gender.Other;
     public int RoleId { get; set; }
 }
 
@@ -20,6 +21,7 @@ public record UpdateUserRequest
     public string? Password { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public Gender? Gender { get; set; }
     public int? RoleId { get; set; }
     public UserStatus? Status { get; set; }
 }

@@ -1,4 +1,5 @@
 ﻿using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Authorization;
@@ -52,6 +53,7 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
                 Password = request.Password,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
+                Gender = request.Gender,
                 RoleId = request.RoleId,
                 Status = request.Status
             };
@@ -168,7 +170,7 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
 
     [HttpGet("me")]
     [Authorize]
-    public async Task<IActionResult> GetMe(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<Result<GetUserDto>>> GetMe(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -186,7 +188,7 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         catch (Exception ex)
         {
             LogError("Error getting current user information", ex);
-            return StatusCode(500, "An error occurred while retrieving current user information");
+            return StatusCode(500, Result<GetUserDto>.Failure("An error occurred while retrieving current user information"));
         }
     }
 }

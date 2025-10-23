@@ -17,6 +17,8 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
         builder.Property(e => e.Gender)
             .HasMaxLength(20);
 
+        builder.Property(e => e.BirthDate);
+
         builder.Property(e => e.Address)
             .HasMaxLength(500);
 
@@ -25,6 +27,9 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
 
         builder.Property(e => e.PhoneNumber)
             .HasMaxLength(20);
+
+        builder.Property(e => e.Email)
+            .IsRequired();
 
         builder.Property(e => e.AvatarUrl)
             .HasMaxLength(500);
