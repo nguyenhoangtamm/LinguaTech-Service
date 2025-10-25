@@ -15,6 +15,7 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
             .HasMaxLength(200);
 
         builder.Property(e => e.Gender)
+            .IsRequired(false)
             .HasMaxLength(20);
 
         builder.Property(e => e.BirthDate);
@@ -23,6 +24,7 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
             .HasMaxLength(500);
 
         builder.Property(e => e.Bio)
+            .IsRequired(false)
             .HasMaxLength(1000);
 
         builder.Property(e => e.PhoneNumber)

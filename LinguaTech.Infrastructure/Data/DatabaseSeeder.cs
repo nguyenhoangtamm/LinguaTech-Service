@@ -22,7 +22,7 @@ public static class DatabaseSeeder
         try
         {
             await SeedRolesAsync(roleManager, logger);
-            await SeedDefaultUserAsync(userManager, logger);
+            await SeedDefaultUsersAndProfilesAsync(context, userManager, roleManager, logger);
             await SeedMenusAsync(context, roleManager, logger);
         }
         catch (Exception ex)
@@ -36,9 +36,7 @@ public static class DatabaseSeeder
         var roles = new[]
         {
             new Role { Name = "Admin", Description = "System Administrator" },
-            new Role { Name = "Teacher", Description = "Course Instructor" },
-            new Role { Name = "Student", Description = "Course Learner" },
-            new Role { Name = "Manager", Description = "Course Manager" }
+            new Role { Name = "User", Description = "Regular User" }
         };
 
         foreach (var role in roles)
@@ -59,30 +57,111 @@ public static class DatabaseSeeder
         }
     }
 
-    private static async Task SeedDefaultUserAsync(UserManager<User> userManager, ILogger logger)
+    private static async Task SeedDefaultUsersAndProfilesAsync(
+        ApplicationDbContext context,
+        UserManager<User> userManager,
+        RoleManager<Role> roleManager,
+        ILogger logger)
     {
-        var adminEmail = "admin@linguatech.com";
-        
-        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        // Get role IDs
+        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+
+        if (adminRole == null || userRole == null)
         {
-            var adminUser = new User
+            logger.LogError("Roles not found. Cannot seed users.");
+            return;
+        }
+
+        // Seed Admin User
+        var adminEmail = "admin@linguatech.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+        if (adminUser == null)
+        {
+            var newAdminUser = new User
             {
                 UserName = "admin",
                 Email = adminEmail,
                 EmailConfirmed = true,
                 Status = UserStatus.Active,
-                RoleId = 1 // Assuming Admin role will have ID 1
+                RoleId = adminRole.Id,
+                CreatedDate = DateTime.UtcNow
             };
 
-            var result = await userManager.CreateAsync(adminUser, "Admin123!");
-            
+            var result = await userManager.CreateAsync(newAdminUser, "Admin@123");
             if (result.Succeeded)
             {
+                await userManager.AddToRoleAsync(newAdminUser, "Admin");
                 logger.LogInformation("Created admin user: {Email}", adminEmail);
+
+                // Create Profile for Admin User
+                var adminProfile = new Profile
+                {
+                    UserId = newAdminUser.Id,
+                    Fullname = "Administrator",
+                    Email = adminEmail,
+                    Gender = "Other",
+                    Address = "System",
+                    PhoneNumber = "+84-0000000",
+                    Bio = "System Administrator Account",
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                await context.Profiles.AddAsync(adminProfile);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Created profile for admin user");
             }
             else
             {
                 logger.LogError("Failed to create admin user. Errors: {Errors}", 
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        }
+
+        // Seed Regular User
+        var regularUserEmail = "user@linguatech.com";
+        var regularUser = await userManager.FindByEmailAsync(regularUserEmail);
+
+        if (regularUser == null)
+        {
+            var newRegularUser = new User
+            {
+                UserName = "user",
+                Email = regularUserEmail,
+                EmailConfirmed = true,
+                Status = UserStatus.Active,
+                RoleId = userRole.Id,
+                CreatedDate = DateTime.UtcNow
+            };
+
+            var result = await userManager.CreateAsync(newRegularUser, "User@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(newRegularUser, "User");
+                logger.LogInformation("Created regular user: {Email}", regularUserEmail);
+
+                // Create Profile for Regular User
+                var userProfile = new Profile
+                {
+                    UserId = newRegularUser.Id,
+                    Fullname = "Test User",
+                    Email = regularUserEmail,
+                    Gender = "Male",
+                    BirthDate = new DateTime(1990, 1, 1),
+                    Address = "123 Test Street, Test City",
+                    PhoneNumber = "+84-123456789",
+                    Bio = "This is a test user account",
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                await context.Profiles.AddAsync(userProfile);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Created profile for regular user");
+            }
+            else
+            {
+                logger.LogError("Failed to create regular user. Errors: {Errors}", 
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
         }

@@ -26,8 +26,26 @@ public class RegisterRequest
     [MinLength(3)]
     public string UserName { get; set; } = string.Empty;
 
+    // Profile fields
     [Required]
-    public int RoleId { get; set; }
+    [MinLength(2)]
+    [MaxLength(200)]
+    public string Fullname { get; set; } = string.Empty;
+
+    [MaxLength(20)]
+    public string? Gender { get; set; }
+
+    public DateTime? BirthDate { get; set; }
+
+    [MaxLength(500)]
+    public string? Address { get; set; }
+
+    [MaxLength(1000)]
+    public string? Bio { get; set; }
+
+    [Phone]
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
 }
 
 public class AuthResponse

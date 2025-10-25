@@ -2,6 +2,7 @@ using System.Security.Claims;
 using LinguaTech.Domain.Common.Security;
 using LinguaTech.Domain.Entities;
 using LinguaTech.Domain.Enums;
+using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ namespace LinguaTech.Application.Services;
 public interface IAuthService
 {
     Task<AuthResult> LoginAsync(string usernameOrEmail, string password, string? deviceInfo = null, string? ipAddress = null);
-    Task<AuthResult> RegisterAsync(string email, string password, string username, int roleId);
+    Task<AuthResult> RegisterAsync(string email, string password, string username, string fullname, string? gender = null, DateTime? birthDate = null, string? address = null, string? bio = null, string? phoneNumber = null, string? avatarUrl = null);
     Task<AuthResult> RefreshTokenAsync(string refreshToken);
     Task<bool> LogoutAsync(string userId, string? accessToken = null);
     Task<User?> GetUserByIdAsync(string userId);
@@ -25,6 +26,7 @@ public class AuthService : IAuthService
     private readonly RoleManager<Role> _roleManager;
     private readonly IJwtService _jwtService;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -33,6 +35,7 @@ public class AuthService : IAuthService
         RoleManager<Role> roleManager,
         IJwtService jwtService,
         IRefreshTokenRepository refreshTokenRepository,
+        IUnitOfWork unitOfWork,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
@@ -40,6 +43,7 @@ public class AuthService : IAuthService
         _roleManager = roleManager;
         _jwtService = jwtService;
         _refreshTokenRepository = refreshTokenRepository;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -49,7 +53,7 @@ public class AuthService : IAuthService
         {
             User? user = null;
             
-            // Th? tìm user b?ng email tr??c
+            // Tìm user b?ng email tr??c
             if (IsValidEmail(usernameOrEmail))
             {
                 user = await _userManager.Users
@@ -104,7 +108,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<AuthResult> RegisterAsync(string email, string password, string username, int roleId)
+    public async Task<AuthResult> RegisterAsync(string email, string password, string username, string fullname, string? gender = null, DateTime? birthDate = null, string? address = null, string? bio = null, string? phoneNumber = null, string? avatarUrl = null)
     {
         try
         {
@@ -121,11 +125,14 @@ public class AuthService : IAuthService
                 return AuthResult.Failed("User with this username already exists.");
             }
 
+            // Automatically assign role ID 2 (Student/User role)
+            const int defaultRoleId = 2;
+
             var user = new User
             {
                 UserName = username,
                 Email = email,
-                RoleId = roleId,
+                RoleId = defaultRoleId,
                 Status = UserStatus.Active,
                 EmailConfirmed = true // Set to true for now, implement email confirmation later if needed
             };
@@ -135,6 +142,32 @@ public class AuthService : IAuthService
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 return AuthResult.Failed($"User creation failed: {errors}");
+            }
+
+            // Create Profile for the new user
+            try
+            {
+                var profile = new Profile
+                {
+                    UserId = user.Id,
+                    Fullname = fullname,
+                    Email = email,
+                    Gender = gender,
+                    BirthDate = birthDate,
+                    Address = address,
+                    Bio = bio,
+                    PhoneNumber = phoneNumber,
+                    AvatarUrl = avatarUrl
+                };
+
+                var profileRepository = _unitOfWork.Repository<Profile>();
+                await profileRepository.AddAsync(profile);
+                await _unitOfWork.Save(CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating profile for new user: {UserId}", user.Id);
+                // Continue without failing - profile creation is secondary
             }
 
             // Load user with role information
@@ -154,7 +187,7 @@ public class AuthService : IAuthService
                 user!.Id.ToString(),
                 user.UserName!,
                 user.Email!,
-                user.UserName!, // Default fullname to username for new users
+                fullname,
                 roleName
             );
         }

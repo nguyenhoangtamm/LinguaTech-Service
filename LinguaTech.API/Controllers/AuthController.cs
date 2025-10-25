@@ -20,9 +20,9 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
+     if (!ModelState.IsValid)
+    {
+  return BadRequest(ModelState);
         }
 
         // Get device info and IP address for security tracking
@@ -33,66 +33,76 @@ public class AuthController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new AuthResponse
-            {
+      return BadRequest(new AuthResponse
+        {
                 Data = new AuthData(),
                 Message = result.ErrorMessage ?? "Đăng nhập thất bại"
             });
-        }
+    }
 
         var response = new AuthResponse
         {
             Data = new AuthData
-            {
-                AccessToken = result.AccessToken!,
-                RefreshToken = result.RefreshToken!,
-                User = new UserInfo
-                {
-                    UserName = result.UserName!,
-                    FullName = result.FullName!,
-                    Role = result.Role!
-                }
-            },
+   {
+      AccessToken = result.AccessToken!,
+          RefreshToken = result.RefreshToken!,
+       User = new UserInfo
+ {
+ UserName = result.UserName!,
+   FullName = result.FullName!,
+          Role = result.Role!
+      }
+        },
             Message = "Đăng nhập thành công"
         };
 
         return Ok(response);
     }
 
-    [HttpPost("register")]
+ [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+    return BadRequest(ModelState);
         }
 
-        var result = await _authService.RegisterAsync(request.Email, request.Password, request.UserName, request.RoleId);
+        var result = await _authService.RegisterAsync(
+  request.Email, 
+      request.Password, 
+            request.UserName, 
+  request.Fullname,
+     request.Gender,
+            request.BirthDate,
+   request.Address,
+            request.Bio,
+     request.PhoneNumber
+        );
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new AuthResponse
-            {
-                Data = new AuthData(),
-                Message = result.ErrorMessage ?? "Đăng ký thất bại"
-            });
+       return BadRequest(new AuthResponse
+     {
+      Data = new AuthData(),
+         Message = result.ErrorMessage ?? "Đăng ký thất bại"
+});
         }
 
-        var response = new AuthResponse
-        {
-            Data = new AuthData
-            {
-                AccessToken = result.AccessToken!,
+var response = new AuthResponse
+   {
+     Data = new AuthData
+       {
+           AccessToken = result.AccessToken!,
                 RefreshToken = result.RefreshToken!,
-                User = new UserInfo
-                {
-                    UserName = result.UserName!,
-                    FullName = result.FullName!,
-                    Role = result.Role!
-                }
-            },
-            Message = "Đăng ký thành công"
+           User = new UserInfo
+        {
+         UserName = result.UserName!,
+          FullName = result.FullName!,
+          Role = result.Role!
+           }
+   },
+       Message = "Đăng ký thành công"
         };
 
         return Ok(response);
@@ -107,16 +117,16 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
-        }
+     }
 
-        // Get access token from Authorization header for blacklisting
+      // Get access token from Authorization header for blacklisting
         var accessToken = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
 
         var result = await _authService.LogoutAsync(userId, accessToken);
 
-        if (!result)
+if (!result)
         {
-            return BadRequest(new { message = "Đăng xuất thất bại" });
+     return BadRequest(new { message = "Đăng xuất thất bại" });
         }
 
         return Ok(new { message = "Đăng xuất thành công" });
@@ -126,27 +136,27 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetCurrentUser()
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+      var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
-        }
+    }
 
-        var user = await _authService.GetUserByIdAsync(userId);
+  var user = await _authService.GetUserByIdAsync(userId);
 
         if (user == null)
         {
-            return NotFound(new { message = "Không tìm thấy người dùng" });
+         return NotFound(new { message = "Không tìm thấy người dùng" });
         }
 
-        return Ok(new
+    return Ok(new
         {
-            id = user.Id,
-            userName = user.UserName,
+   id = user.Id,
+     userName = user.UserName,
             email = user.Email,
             roleId = user.RoleId,
-            status = user.Status
+      status = user.Status
         });
     }
 
@@ -155,34 +165,34 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         if (!ModelState.IsValid)
-        {
+    {
             return BadRequest(ModelState);
         }
 
         var result = await _authService.RefreshTokenAsync(request.RefreshToken);
 
-        if (!result.IsSuccess)
-        {
-            return BadRequest(new AuthResponse
+     if (!result.IsSuccess)
+   {
+         return BadRequest(new AuthResponse
             {
-                Data = new AuthData(),
-                Message = result.ErrorMessage ?? "Làm mới token thất bại"
-            });
+          Data = new AuthData(),
+           Message = result.ErrorMessage ?? "Làm mới token thất bại"
+     });
         }
 
         var response = new AuthResponse
-        {
+ {
             Data = new AuthData
-            {
-                AccessToken = result.AccessToken!,
-                RefreshToken = result.RefreshToken!,
-                User = new UserInfo
-                {
-                    UserName = result.UserName!,
-                    FullName = result.FullName!,
-                    Role = result.Role!
-                }
-            },
+    {
+         AccessToken = result.AccessToken!,
+    RefreshToken = result.RefreshToken!,
+            User = new UserInfo
+    {
+             UserName = result.UserName!,
+         FullName = result.FullName!,
+ Role = result.Role!
+           }
+ },
             Message = "Làm mới token thành công"
         };
 

@@ -5,7 +5,9 @@ using LinguaTech.Application;
 using LinguaTech.Domain.Common.Security;
 using LinguaTech.Infrastructure;
 using LinguaTech.Infrastructure.Data;
+using LinguaTech.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +64,13 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Auto-migrate and seed the database
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 // Seed the database
 await DatabaseSeeder.SeedAsync(app.Services);
 
@@ -73,7 +82,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// S? d?ng CORS ??n gi?n
+// Use CORS middleware
 app.UseCors();
 
 // Use JWT blacklist middleware before authentication
