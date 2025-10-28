@@ -8,30 +8,45 @@ public class GetAssignmentsWithPaginationQueryValidator : AbstractValidator<GetA
     public GetAssignmentsWithPaginationQueryValidator()
     {
         RuleFor(x => x.PageNumber)
-            .GreaterThan(0).WithMessage("PageNumber must be greater than 0");
+            .GreaterThan(0);
 
         RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("PageSize must be between 1 and 100");
+            .GreaterThan(0)
+            .LessThanOrEqualTo(100);
 
         RuleFor(x => x.Keyword)
-            .MaximumLength(100).WithMessage("Keyword must not exceed 100 characters")
-            .When(x => !string.IsNullOrEmpty(x.Keyword));
+            .MaximumLength(100);
 
-        RuleFor(x => x.LessonId)
-            .GreaterThan(0).WithMessage("LessonId must be greater than 0")
-            .When(x => x.LessonId.HasValue);
+        When(x => x.LessonId.HasValue, () =>
+        {
+            RuleFor(x => x.LessonId.Value)
+                .GreaterThan(0);
+        });
 
-        RuleFor(x => x.DueDateFrom)
-            .LessThan(x => x.DueDateTo).WithMessage("DueDateFrom must be before DueDateTo")
-            .When(x => x.DueDateFrom.HasValue && x.DueDateTo.HasValue);
+        When(x => x.DueDateFrom.HasValue && x.DueDateTo.HasValue, () =>
+        {
+            RuleFor(x => x)
+                .Must(x => x.DueDateTo >= x.DueDateFrom)
+                .WithMessage("DueDateTo must be greater than or equal to DueDateFrom");
+        });
 
-        RuleFor(x => x.MinScore)
-            .GreaterThanOrEqualTo(0).WithMessage("MinScore must be greater than or equal to 0")
-            .LessThan(x => x.MaxScore).WithMessage("MinScore must be less than MaxScore")
-            .When(x => x.MinScore.HasValue);
+        When(x => x.MinScore.HasValue, () =>
+        {
+            RuleFor(x => x.MinScore.Value)
+                .GreaterThanOrEqualTo(0);
+        });
 
-        RuleFor(x => x.MaxScore)
-            .GreaterThan(0).WithMessage("MaxScore must be greater than 0")
-            .When(x => x.MaxScore.HasValue);
+        When(x => x.MaxScore.HasValue, () =>
+        {
+            RuleFor(x => x.MaxScore.Value)
+                .GreaterThan(0);
+        });
+
+        When(x => x.MinScore.HasValue && x.MaxScore.HasValue, () =>
+        {
+            RuleFor(x => x)
+                .Must(x => x.MaxScore >= x.MinScore)
+                .WithMessage("MaxScore must be greater than or equal to MinScore");
+        });
     }
 }

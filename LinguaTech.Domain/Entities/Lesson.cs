@@ -6,10 +6,13 @@ public class Lesson : BaseAuditableEntity
 {
     public int ModuleId { get; set; }
     public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Content { get; set; }
     public int Duration { get; set; }
-    public string VideoUrl { get; set; } = string.Empty;
+    public string? VideoUrl { get; set; }
     public int Order { get; set; }
+    public bool IsPublished { get; set; } = false;
+    public bool IsCompleted { get; set; } = false;
 
     // Navigation properties
     public virtual Module Module { get; set; } = null!;

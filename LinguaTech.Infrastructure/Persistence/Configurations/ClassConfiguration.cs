@@ -27,12 +27,6 @@ public class ClassConfiguration : IEntityTypeConfiguration<Class>
             .IsRequired()
             .HasMaxLength(50);
 
-        // Relationships
-        builder.HasMany(e => e.Enrollments)
-            .WithOne(en => en.Class)
-            .HasForeignKey(en => en.CourseId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         // Apply base configuration
         new BaseAuditableEntityConfiguration<Class>().Configure(builder);
     }

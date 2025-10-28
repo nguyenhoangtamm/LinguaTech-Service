@@ -33,17 +33,10 @@ public class EnrollmentService : BaseService, IEnrollmentService
     {
         try
         {
-            LogInformation($"Creating enrollment for user {request.UserId} in course {request.CourseId}");
+            LogInformation($"Creating enrollment for course {request.CourseId}");
 
             var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
             var courseRepository = _unitOfWork.Repository<Course>();
-
-            // Check if user exists
-            var user = await _userRepository.GetByIdAsync(request.UserId);
-            if (user == null)
-            {
-                return Result<int>.Failure("User not found");
-            }
 
             // Check if course exists
             var course = await courseRepository.GetByIdAsync(request.CourseId);
@@ -52,28 +45,28 @@ public class EnrollmentService : BaseService, IEnrollmentService
                 return Result<int>.Failure("Course not found");
             }
 
-            // Check if enrollment already exists
+            // Check if enrollment already exists for current user
+            var currentUserId = UserId;
+            if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var userIdInt))
+            {
+                return Result<int>.Failure("Invalid user ID");
+            }
+
             var existingEnrollment = await enrollmentRepository.Entities
-                .FirstOrDefaultAsync(e => e.UserId == request.UserId && e.CourseId == request.CourseId, cancellationToken);
+                .FirstOrDefaultAsync(e => e.UserId == userIdInt && e.CourseId == request.CourseId, cancellationToken);
 
             if (existingEnrollment != null)
             {
-                return Result<int>.Failure("User is already enrolled in this course");
-            }
-
-            // Validate progress
-            if (request.Progress < 0 || request.Progress > 100)
-            {
-                return Result<int>.Failure("Progress must be between 0 and 100");
+                return Result<int>.Failure("You are already enrolled in this course");
             }
 
             // Create enrollment entity
             var enrollment = new Enrollment
             {
-                UserId = request.UserId,
+                UserId = userIdInt,
                 CourseId = request.CourseId,
-                Progress = request.Progress,
-                Status = request.Status,
+                Status = EnrollmentStatus.Active,
+                EnrolledAt = DateTime.UtcNow,
                 CreatedDate = DateTime.UtcNow,
                 CreatedBy = UserName ?? "System"
             };
@@ -82,12 +75,12 @@ public class EnrollmentService : BaseService, IEnrollmentService
             await _unitOfWork.Save(cancellationToken);
 
             LogInformation($"Enrollment created successfully with ID: {enrollment.Id}");
-            return Result<int>.Success(enrollment.Id, "Enrollment created successfully");
+            return Result<int>.Success(enrollment.Id, "Enrolled in course successfully");
         }
         catch (Exception ex)
         {
             LogError("Error creating enrollment", ex);
-            return Result<int>.Failure("An error occurred while creating the enrollment");
+            return Result<int>.Failure("An error occurred while enrolling in the course");
         }
     }
 
@@ -105,16 +98,7 @@ public class EnrollmentService : BaseService, IEnrollmentService
                 return Result<int>.Failure("Enrollment not found");
             }
 
-            // Validate progress if being updated
-            if (request.Progress.HasValue && (request.Progress.Value < 0 || request.Progress.Value > 100))
-            {
-                return Result<int>.Failure("Progress must be between 0 and 100");
-            }
-
             // Update enrollment properties
-            if (request.Progress.HasValue)
-                enrollment.Progress = request.Progress.Value;
-
             if (request.Status.HasValue)
                 enrollment.Status = request.Status.Value;
 
@@ -181,8 +165,7 @@ public class EnrollmentService : BaseService, IEnrollmentService
             var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
             var enrollment = await enrollmentRepository.Entities
                 .Include(e => e.User)
-                .Include(e => e.Class)
-                .ThenInclude(c => c.Course)
+                .Include(e => e.Course)
                 .Where(e => e.Id == id && !e.IsDeleted)
                 .ProjectTo<GetEnrollmentDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -211,8 +194,7 @@ public class EnrollmentService : BaseService, IEnrollmentService
             var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
             var enrollments = await enrollmentRepository.Entities
                 .Include(e => e.User)
-                .Include(e => e.Class)
-                .ThenInclude(c => c.Course)
+                .Include(e => e.Course)
                 .Where(e => !e.IsDeleted)
                 .OrderBy(e => e.CreatedDate)
                 .ProjectTo<GetAllEnrollmentsDto>(_mapper.ConfigurationProvider)
@@ -237,18 +219,10 @@ public class EnrollmentService : BaseService, IEnrollmentService
             var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
             var enrollmentsQuery = enrollmentRepository.Entities
                 .Include(e => e.User)
-                .Include(e => e.Class)
-                .ThenInclude(c => c.Course)
+                .Include(e => e.Course)
                 .Where(e => !e.IsDeleted);
 
             // Apply filters
-            if (!string.IsNullOrEmpty(query.Keyword))
-            {
-                enrollmentsQuery = enrollmentsQuery.Where(e =>
-                    e.User.UserName.Contains(query.Keyword) ||
-                    e.Class.Course.Title.Contains(query.Keyword));
-            }
-
             if (query.UserId.HasValue)
             {
                 enrollmentsQuery = enrollmentsQuery.Where(e => e.UserId == query.UserId.Value);
@@ -262,16 +236,6 @@ public class EnrollmentService : BaseService, IEnrollmentService
             if (query.Status.HasValue)
             {
                 enrollmentsQuery = enrollmentsQuery.Where(e => e.Status == query.Status.Value);
-            }
-
-            if (query.MinProgress.HasValue)
-            {
-                enrollmentsQuery = enrollmentsQuery.Where(e => e.Progress >= query.MinProgress.Value);
-            }
-
-            if (query.MaxProgress.HasValue)
-            {
-                enrollmentsQuery = enrollmentsQuery.Where(e => e.Progress <= query.MaxProgress.Value);
             }
 
             var totalRecords = await enrollmentsQuery.CountAsync(cancellationToken);
@@ -309,8 +273,7 @@ public class EnrollmentService : BaseService, IEnrollmentService
 
             var enrollments = await enrollmentRepository.Entities
                 .Include(e => e.User)
-                .Include(e => e.Class)
-                .ThenInclude(c => c.Course)
+                .Include(e => e.Course)
                 .Where(e => e.UserId == userId && !e.IsDeleted)
                 .OrderBy(e => e.CreatedDate)
                 .ProjectTo<GetAllEnrollmentsDto>(_mapper.ConfigurationProvider)
@@ -344,8 +307,7 @@ public class EnrollmentService : BaseService, IEnrollmentService
 
             var enrollments = await enrollmentRepository.Entities
                 .Include(e => e.User)
-                .Include(e => e.Class)
-                .ThenInclude(c => c.Course)
+                .Include(e => e.Course)
                 .Where(e => e.CourseId == courseId && !e.IsDeleted)
                 .OrderBy(e => e.CreatedDate)
                 .ProjectTo<GetAllEnrollmentsDto>(_mapper.ConfigurationProvider)
@@ -358,6 +320,205 @@ public class EnrollmentService : BaseService, IEnrollmentService
         {
             LogError($"Error getting enrollments for course ID: {courseId}", ex);
             return Result<List<GetAllEnrollmentsDto>>.Failure("An error occurred while retrieving enrollments");
+        }
+    }
+
+    public async Task<Result<UserEnrollmentsResType>> GetUserEnrollments(CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation("Getting user enrollments");
+
+            var currentUserId = UserId;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Result<UserEnrollmentsResType>.Failure("User not authenticated");
+            }
+
+            var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
+            var enrollments = await enrollmentRepository.Entities
+                .Include(e => e.Course)
+                .ThenInclude(c => c.Category)
+                .Where(e => e.UserId == int.Parse(currentUserId) && !e.IsDeleted)
+                .ProjectTo<UserEnrollmentType>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
+
+            var response = new UserEnrollmentsResType
+            {
+                Data = enrollments,
+                Message = "User enrollments retrieved successfully"
+            };
+
+            LogInformation($"Retrieved {enrollments.Count} enrollments for user");
+            return Result<UserEnrollmentsResType>.Success(response, "User enrollments retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting user enrollments", ex);
+            return Result<UserEnrollmentsResType>.Failure("An error occurred while retrieving user enrollments");
+        }
+    }
+
+    public async Task<Result<CheckEnrollmentResType>> CheckEnrollment(int courseId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Checking enrollment for course {courseId}");
+
+            var currentUserId = UserId;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Result<CheckEnrollmentResType>.Failure("User not authenticated");
+            }
+
+            var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
+            var enrollment = await enrollmentRepository.Entities
+                .Where(e => e.UserId == int.Parse(currentUserId) && e.CourseId == courseId && !e.IsDeleted)
+                .ProjectTo<EnrollmentType>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var response = new CheckEnrollmentResType
+            {
+                Data = new CheckEnrollmentData
+                {
+                    IsEnrolled = enrollment != null,
+                    Enrollment = enrollment
+                }
+            };
+
+            LogInformation($"Enrollment check completed for course {courseId}");
+            return Result<CheckEnrollmentResType>.Success(response, "Enrollment check completed");
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error checking enrollment for course {courseId}", ex);
+            return Result<CheckEnrollmentResType>.Failure("An error occurred while checking enrollment");
+        }
+    }
+
+    public async Task<Result<UpdateProgressResType>> UpdateProgress(int courseId, UpdateProgressRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Updating progress for course {courseId}");
+
+            var currentUserId = UserId;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Result<UpdateProgressResType>.Failure("User not authenticated");
+            }
+
+            var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
+            var progressRepository = _unitOfWork.Repository<EnrollmentProgress>();
+
+            // Get enrollment
+            var enrollment = await enrollmentRepository.Entities
+                .FirstOrDefaultAsync(e => e.UserId == int.Parse(currentUserId) && e.CourseId == courseId && !e.IsDeleted, cancellationToken);
+
+            if (enrollment == null)
+            {
+                return Result<UpdateProgressResType>.Failure("Enrollment not found");
+            }
+
+            // Get or create progress record
+            var progress = await progressRepository.Entities
+                .FirstOrDefaultAsync(p => p.UserId == int.Parse(currentUserId) && p.CourseId == courseId, cancellationToken);
+
+            if (progress == null)
+            {
+                progress = new EnrollmentProgress
+                {
+                    UserId = int.Parse(currentUserId),
+                    CourseId = courseId,
+                    CompletedLessons = 0,
+                    TotalLessons = 0,
+                    StartedAt = DateTime.UtcNow,
+                    LastAccessedAt = DateTime.UtcNow,
+                    CreatedDate = DateTime.UtcNow,
+                    CreatedBy = UserName ?? "System"
+                };
+                await progressRepository.AddAsync(progress);
+            }
+
+            // Update progress
+            if (request.Completed)
+            {
+                progress.CompletedLessons++;
+            }
+
+            progress.LastAccessedAt = DateTime.UtcNow;
+            progress.UpdatedDate = DateTime.UtcNow;
+            progress.UpdatedBy = UserName ?? "System";
+
+            // Calculate progress percentage
+            if (progress.TotalLessons > 0)
+            {
+                progress.ProgressPercentage = (double)progress.CompletedLessons / progress.TotalLessons * 100;
+            }
+
+            await progressRepository.UpdateAsync(progress);
+            await _unitOfWork.Save(cancellationToken);
+
+            var response = new UpdateProgressResType
+            {
+                Data = new UpdateProgressData
+                {
+                    ProgressPercentage = progress.ProgressPercentage,
+                    CompletedLessons = progress.CompletedLessons,
+                    TotalLessons = progress.TotalLessons
+                },
+                Message = "Progress updated successfully"
+            };
+
+            LogInformation($"Progress updated successfully for course {courseId}");
+            return Result<UpdateProgressResType>.Success(response, "Progress updated successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error updating progress for course {courseId}", ex);
+            return Result<UpdateProgressResType>.Failure("An error occurred while updating progress");
+        }
+    }
+
+    public async Task<Result<UserEnrollmentsResType>> GetContinueCourses(CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation("Getting continue courses");
+
+            var currentUserId = UserId;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Result<UserEnrollmentsResType>.Failure("User not authenticated");
+            }
+
+            var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
+            var enrollments = await enrollmentRepository.Entities
+                .Include(e => e.Course)
+                .ThenInclude(c => c.Category)
+                .Include(e => e.Progress)
+                .Where(e => e.UserId == int.Parse(currentUserId) &&
+                           e.Status == EnrollmentStatus.Active &&
+                           !e.IsDeleted &&
+                           e.Progress != null &&
+                           e.Progress.ProgressPercentage > 0 &&
+                           e.Progress.ProgressPercentage < 100)
+                .ProjectTo<UserEnrollmentType>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
+
+            var response = new UserEnrollmentsResType
+            {
+                Data = enrollments,
+                Message = "Continue courses retrieved successfully"
+            };
+
+            LogInformation($"Retrieved {enrollments.Count} continue courses for user");
+            return Result<UserEnrollmentsResType>.Success(response, "Continue courses retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting continue courses", ex);
+            return Result<UserEnrollmentsResType>.Failure("An error occurred while retrieving continue courses");
         }
     }
 }

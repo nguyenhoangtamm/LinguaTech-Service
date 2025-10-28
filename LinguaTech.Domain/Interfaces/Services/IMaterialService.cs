@@ -9,7 +9,7 @@ public interface IMaterialService
     Task<Result<int>> Create(CreateMaterialRequest request, CancellationToken cancellationToken);
     Task<Result<int>> Update(int id, UpdateMaterialRequest request, CancellationToken cancellationToken);
     Task<Result<int>> Delete(int id, CancellationToken cancellationToken);
-    Task<Result<GetMaterialDto>> GetById(int id, CancellationToken cancellationToken);
-    Task<Result<List<GetAllMaterialsDto>>> GetAll(CancellationToken cancellationToken);
-    Task<Result<PaginatedResult<GetMaterialsWithPaginationDto>>> GetMaterialsWithPagination(GetMaterialsWithPaginationQuery query, CancellationToken cancellationToken);
+    Task<Result<MaterialType>> GetById(int id, CancellationToken cancellationToken);
+    Task<Result<List<MaterialType>>> GetByLessonId(int lessonId, GetMaterialsWithPaginationQuery query, CancellationToken cancellationToken);
+    Task<Result<byte[]>> Download(int id, CancellationToken cancellationToken);
 }

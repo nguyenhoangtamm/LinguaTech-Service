@@ -7,19 +7,29 @@ public class UpdateModuleRequestValidator : AbstractValidator<UpdateModuleReques
 {
     public UpdateModuleRequestValidator()
     {
-        RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("Id must be greater than 0");
+        When(x => x.Title != null, () =>
+        {
+            RuleFor(x => x.Title)
+                .NotEmpty()
+                .MaximumLength(200);
+        });
 
-        RuleFor(x => x.Title)
-            .Length(3, 200).WithMessage("Title must be between 3 and 200 characters")
-            .When(x => !string.IsNullOrEmpty(x.Title));
+        When(x => x.Description != null, () =>
+        {
+            RuleFor(x => x.Description)
+                .MaximumLength(1000);
+        });
 
-        RuleFor(x => x.Order)
-            .GreaterThan(0).WithMessage("Order must be greater than 0")
-            .When(x => x.Order.HasValue);
+        When(x => x.Order.HasValue, () =>
+        {
+            RuleFor(x => x.Order.Value)
+                .GreaterThanOrEqualTo(0);
+        });
 
-        RuleFor(x => x.ParentId)
-            .GreaterThan(0).WithMessage("ParentId must be greater than 0")
-            .When(x => x.ParentId.HasValue);
+        When(x => x.CourseId.HasValue, () =>
+        {
+            RuleFor(x => x.CourseId.Value)
+                .GreaterThan(0);
+        });
     }
 }

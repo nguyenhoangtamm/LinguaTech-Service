@@ -8,42 +8,38 @@ public class UpdateClassRequestValidator : AbstractValidator<UpdateClassRequest>
     public UpdateClassRequestValidator()
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("Id must be greater than 0");
+            .GreaterThan(0);
 
         RuleFor(x => x.CourseId)
-            .GreaterThan(0).WithMessage("CourseId must be greater than 0");
+            .GreaterThan(0);
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required")
-            .Length(3, 200).WithMessage("Name must be between 3 and 200 characters");
+            .NotEmpty()
+            .MaximumLength(100);
 
         RuleFor(x => x.StartDate)
-            .NotEmpty().WithMessage("StartDate is required");
+            .GreaterThan(DateTime.Now);
 
         RuleFor(x => x.EndDate)
-            .NotEmpty().WithMessage("EndDate is required")
-            .GreaterThan(x => x.StartDate).WithMessage("EndDate must be after StartDate");
+            .GreaterThan(x => x.StartDate);
 
         RuleFor(x => x.Schedule)
-            .NotEmpty().WithMessage("Schedule is required")
-            .Length(5, 500).WithMessage("Schedule must be between 5 and 500 characters");
+            .NotEmpty()
+            .MaximumLength(200);
 
         RuleFor(x => x.Location)
-            .NotEmpty().WithMessage("Location is required")
-            .Length(3, 200).WithMessage("Location must be between 3 and 200 characters");
+            .NotEmpty()
+            .MaximumLength(200);
 
         RuleFor(x => x.MaxStudents)
-            .GreaterThan(0).WithMessage("MaxStudents must be greater than 0")
-            .LessThanOrEqualTo(100).WithMessage("MaxStudents cannot exceed 100");
+            .GreaterThan(0);
 
         RuleFor(x => x.TeacherName)
-            .NotEmpty().WithMessage("TeacherName is required")
-            .Length(2, 100).WithMessage("TeacherName must be between 2 and 100 characters")
-            .Matches(@"^[a-zA-Z\s]+$").WithMessage("TeacherName can only contain letters and spaces");
+            .NotEmpty()
+            .MaximumLength(100);
 
         RuleFor(x => x.Status)
-            .NotEmpty().WithMessage("Status is required")
-            .Must(status => new[] { "Active", "Inactive", "Completed", "Cancelled" }.Contains(status))
-            .WithMessage("Status must be one of: Active, Inactive, Completed, Cancelled");
+            .NotEmpty()
+            .MaximumLength(50);
     }
 }

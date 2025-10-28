@@ -191,5 +191,30 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
             return StatusCode(500, Result<GetUserDto>.Failure("An error occurred while retrieving current user information"));
         }
     }
+
+    // GET /api/v1/users/dashboard-stats
+    [HttpGet("dashboard-stats")]
+    [Authorize]
+    public async Task<IActionResult> GetDashboardStats(CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation("Getting user dashboard stats");
+
+            var result = await _userService.GetDashboardStats(cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting dashboard stats", ex);
+            return StatusCode(500, "An error occurred while retrieving dashboard stats");
+        }
+    }
 }
 

@@ -13,4 +13,5 @@ public interface IUserService
     Task<Result<List<GetAllUsersDto>>> GetAll(CancellationToken cancellationToken);
     Task<Result<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination(GetUsersWithPaginationQuery query, CancellationToken cancellationToken);
     Task<Result<GetUserDto>> GetMe(CancellationToken cancellationToken);
+    Task<Result<UserDashboardStatsResType>> GetDashboardStats(CancellationToken cancellationToken);
 }

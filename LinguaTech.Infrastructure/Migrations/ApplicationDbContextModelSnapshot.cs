@@ -207,6 +207,9 @@ namespace LinguaTech.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("CourseTypeId")
                         .HasColumnType("integer");
 
@@ -217,27 +220,44 @@ namespace LinguaTech.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Instructor")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Level")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Overview")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<int>("StudentsCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ThumbnailUrl")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
@@ -256,13 +276,69 @@ namespace LinguaTech.Infrastructure.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("VideoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("CourseTypeId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Courses", (string)null);
+                });
+
+            modelBuilder.Entity("LinguaTech.Domain.Entities.CourseCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CourseCategories", (string)null);
                 });
 
             modelBuilder.Entity("LinguaTech.Domain.Entities.CourseCourseTag", b =>
@@ -461,6 +537,9 @@ namespace LinguaTech.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ClassId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("CourseId")
                         .HasColumnType("integer");
 
@@ -471,14 +550,13 @@ namespace LinguaTech.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
-
-                    b.Property<double>("Progress")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("double precision");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -495,12 +573,81 @@ namespace LinguaTech.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClassId");
+
                     b.HasIndex("CourseId");
 
                     b.HasIndex("UserId", "CourseId")
                         .IsUnique();
 
                     b.ToTable("Enrollments", (string)null);
+                });
+
+            modelBuilder.Entity("LinguaTech.Domain.Entities.EnrollmentProgress", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CompletedLessons")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EnrollmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("LastAccessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("ProgressPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TotalLessons")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("EnrollmentId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EnrollmentProgresses", (string)null);
                 });
 
             modelBuilder.Entity("LinguaTech.Domain.Entities.Lesson", b =>
@@ -512,7 +659,6 @@ namespace LinguaTech.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Content")
-                        .IsRequired()
                         .HasMaxLength(5000)
                         .HasColumnType("character varying(5000)");
 
@@ -523,13 +669,22 @@ namespace LinguaTech.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("ModuleId")
                         .HasColumnType("integer");
@@ -550,7 +705,6 @@ namespace LinguaTech.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("VideoUrl")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
@@ -639,8 +793,15 @@ namespace LinguaTech.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<int?>("LessonId")
+                        .HasColumnType("integer");
+
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(100)
@@ -650,6 +811,8 @@ namespace LinguaTech.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LessonId");
 
                     b.ToTable("Materials", (string)null);
                 });
@@ -726,6 +889,9 @@ namespace LinguaTech.Infrastructure.Migrations
 
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -1509,6 +1675,11 @@ namespace LinguaTech.Infrastructure.Migrations
 
             modelBuilder.Entity("LinguaTech.Domain.Entities.Course", b =>
                 {
+                    b.HasOne("LinguaTech.Domain.Entities.CourseCategory", "Category")
+                        .WithMany("Courses")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("LinguaTech.Domain.Entities.CourseType", "CourseType")
                         .WithMany("Courses")
                         .HasForeignKey("CourseTypeId")
@@ -1519,6 +1690,8 @@ namespace LinguaTech.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("CourseType");
 
@@ -1565,10 +1738,14 @@ namespace LinguaTech.Infrastructure.Migrations
 
             modelBuilder.Entity("LinguaTech.Domain.Entities.Enrollment", b =>
                 {
-                    b.HasOne("LinguaTech.Domain.Entities.Class", "Class")
+                    b.HasOne("LinguaTech.Domain.Entities.Class", null)
                         .WithMany("Enrollments")
+                        .HasForeignKey("ClassId");
+
+                    b.HasOne("LinguaTech.Domain.Entities.Course", "Course")
+                        .WithMany()
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("LinguaTech.Domain.Entities.User", "User")
@@ -1577,7 +1754,34 @@ namespace LinguaTech.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Class");
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LinguaTech.Domain.Entities.EnrollmentProgress", b =>
+                {
+                    b.HasOne("LinguaTech.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LinguaTech.Domain.Entities.Enrollment", "Enrollment")
+                        .WithOne("Progress")
+                        .HasForeignKey("LinguaTech.Domain.Entities.EnrollmentProgress", "EnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LinguaTech.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Enrollment");
 
                     b.Navigation("User");
                 });
@@ -1610,6 +1814,15 @@ namespace LinguaTech.Infrastructure.Migrations
                     b.Navigation("Lesson");
 
                     b.Navigation("Material");
+                });
+
+            modelBuilder.Entity("LinguaTech.Domain.Entities.Material", b =>
+                {
+                    b.HasOne("LinguaTech.Domain.Entities.Lesson", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId");
+
+                    b.Navigation("Lesson");
                 });
 
             modelBuilder.Entity("LinguaTech.Domain.Entities.Menu", b =>
@@ -1836,6 +2049,11 @@ namespace LinguaTech.Infrastructure.Migrations
                     b.Navigation("Modules");
                 });
 
+            modelBuilder.Entity("LinguaTech.Domain.Entities.CourseCategory", b =>
+                {
+                    b.Navigation("Courses");
+                });
+
             modelBuilder.Entity("LinguaTech.Domain.Entities.CourseTag", b =>
                 {
                     b.Navigation("CourseTags");
@@ -1844,6 +2062,11 @@ namespace LinguaTech.Infrastructure.Migrations
             modelBuilder.Entity("LinguaTech.Domain.Entities.CourseType", b =>
                 {
                     b.Navigation("Courses");
+                });
+
+            modelBuilder.Entity("LinguaTech.Domain.Entities.Enrollment", b =>
+                {
+                    b.Navigation("Progress");
                 });
 
             modelBuilder.Entity("LinguaTech.Domain.Entities.Lesson", b =>

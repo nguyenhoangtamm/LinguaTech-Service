@@ -15,11 +15,22 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(e => e.Overview)
+        builder.Property(e => e.Description)
+            .IsRequired()
             .HasMaxLength(2000);
+
+        builder.Property(e => e.Instructor)
+            .IsRequired()
+            .HasMaxLength(200);
 
         builder.Property(e => e.ThumbnailUrl)
             .HasMaxLength(500);
+
+        builder.Property(e => e.VideoUrl)
+            .HasMaxLength(500);
+
+        builder.Property(e => e.Price)
+            .HasPrecision(18, 2);
 
         builder.Property(e => e.Status)
             .IsRequired();
@@ -33,6 +44,11 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.HasOne(e => e.CourseType)
             .WithMany(ct => ct.Courses)
             .HasForeignKey(e => e.CourseTypeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.Category)
+            .WithMany(c => c.Courses)
+            .HasForeignKey(e => e.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(e => e.Classes)

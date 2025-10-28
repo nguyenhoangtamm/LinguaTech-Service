@@ -54,10 +54,12 @@ public class LessonService : BaseService, ILessonService
             {
                 ModuleId = request.ModuleId,
                 Title = request.Title,
+                Description = request.Description,
                 Content = request.Content,
                 Duration = request.Duration,
-                VideoUrl = request.VideoUrl,
                 Order = request.Order,
+                IsPublished = request.IsPublished,
+                IsCompleted = false,
                 CreatedDate = DateTime.UtcNow,
                 CreatedBy = UserName ?? "System"
             };
@@ -105,17 +107,20 @@ public class LessonService : BaseService, ILessonService
             if (!string.IsNullOrEmpty(request.Title))
                 lesson.Title = request.Title;
 
+            if (request.Description != null)
+                lesson.Description = request.Description;
+
             if (!string.IsNullOrEmpty(request.Content))
                 lesson.Content = request.Content;
 
             if (request.Duration.HasValue)
                 lesson.Duration = request.Duration.Value;
 
-            if (!string.IsNullOrEmpty(request.VideoUrl))
-                lesson.VideoUrl = request.VideoUrl;
-
             if (request.Order.HasValue)
                 lesson.Order = request.Order.Value;
+
+            if (request.IsPublished.HasValue)
+                lesson.IsPublished = request.IsPublished.Value;
 
             lesson.UpdatedDate = DateTime.UtcNow;
             lesson.UpdatedBy = UserName ?? "System";
@@ -175,7 +180,7 @@ public class LessonService : BaseService, ILessonService
         }
     }
 
-    public async Task<Result<GetLessonDto>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<Result<LessonType>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
@@ -186,21 +191,21 @@ public class LessonService : BaseService, ILessonService
                 .Include(l => l.Module)
                 .ThenInclude(m => m.Course)
                 .Where(l => l.Id == id && !l.IsDeleted)
-                .ProjectTo<GetLessonDto>(_mapper.ConfigurationProvider)
+                .ProjectTo<LessonType>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (lesson == null)
             {
-                return Result<GetLessonDto>.Failure("Lesson not found");
+                return Result<LessonType>.Failure("Lesson not found");
             }
 
             LogInformation($"Lesson retrieved successfully with ID: {id}");
-            return Result<GetLessonDto>.Success(lesson, "Lesson retrieved successfully");
+            return Result<LessonType>.Success(lesson, "Lesson retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError($"Error getting lesson with ID: {id}", ex);
-            return Result<GetLessonDto>.Failure("An error occurred while retrieving the lesson");
+            return Result<LessonType>.Failure("An error occurred while retrieving the lesson");
         }
     }
 
@@ -230,7 +235,7 @@ public class LessonService : BaseService, ILessonService
         }
     }
 
-    public async Task<Result<PaginatedResult<GetLessonsWithPaginationDto>>> GetLessonsWithPagination(GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResult<LessonType>>> GetLessonsWithPagination(GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -245,7 +250,8 @@ public class LessonService : BaseService, ILessonService
             // Apply filters
             if (!string.IsNullOrEmpty(query.Keyword))
             {
-                lessonsQuery = lessonsQuery.Where(l => l.Title.Contains(query.Keyword) || l.Content.Contains(query.Keyword));
+                lessonsQuery = lessonsQuery.Where(l => l.Title.Contains(query.Keyword) ||
+                    (!string.IsNullOrEmpty(l.Content) && l.Content.Contains(query.Keyword)));
             }
 
             if (query.ModuleId.HasValue)
@@ -270,16 +276,16 @@ public class LessonService : BaseService, ILessonService
                 .ThenBy(l => l.Order)
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)
-                .ProjectTo<GetLessonsWithPaginationDto>(_mapper.ConfigurationProvider)
+                .ProjectTo<LessonType>(_mapper.ConfigurationProvider)
                 .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
 
             LogInformation($"Retrieved {lessons.TotalCount} lessons with pagination successfully");
-            return Result<PaginatedResult<GetLessonsWithPaginationDto>>.Success(lessons, "Lessons retrieved successfully");
+            return Result<PaginatedResult<LessonType>>.Success(lessons, "Lessons retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError("Error getting lessons with pagination", ex);
-            return Result<PaginatedResult<GetLessonsWithPaginationDto>>.Failure("An error occurred while retrieving lessons");
+            return Result<PaginatedResult<LessonType>>.Failure("An error occurred while retrieving lessons");
         }
     }
 
@@ -314,6 +320,37 @@ public class LessonService : BaseService, ILessonService
         {
             LogError($"Error getting lessons for module ID: {moduleId}", ex);
             return Result<List<GetAllLessonsDto>>.Failure("An error occurred while retrieving lessons");
+        }
+    }
+
+    public async Task<Result<LessonType>> CompleteLesson(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Completing lesson with ID: {id}");
+
+            var lessonRepository = _unitOfWork.Repository<Lesson>();
+            var lesson = await lessonRepository.GetByIdAsync(id);
+
+            if (lesson == null)
+            {
+                return Result<LessonType>.Failure("Lesson not found");
+            }
+
+            lesson.IsCompleted = true;
+            lesson.UpdatedDate = DateTime.UtcNow;
+            lesson.UpdatedBy = UserName ?? "System";
+
+            await _unitOfWork.Save(cancellationToken);
+
+            var updatedLesson = _mapper.Map<LessonType>(lesson);
+            LogInformation($"Lesson completed successfully with ID: {id}");
+            return Result<LessonType>.Success(updatedLesson, "Lesson completed successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error completing lesson with ID: {id}", ex);
+            return Result<LessonType>.Failure("An error occurred while completing the lesson");
         }
     }
 }

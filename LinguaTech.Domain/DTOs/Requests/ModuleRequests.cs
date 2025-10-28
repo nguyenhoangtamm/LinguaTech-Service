@@ -1,22 +1,22 @@
 namespace LinguaTech.Domain.DTOs.Requests;
 
-public record CreateModuleRequest
+public class CreateModuleRequest
 {
-    public int CourseId { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public int Order { get; set; }
-    public int? ParentId { get; set; }
+    public int CourseId { get; set; }
 }
 
-public record UpdateModuleRequest
+public class UpdateModuleRequest
 {
-    public int Id { get; set; }
     public string? Title { get; set; }
+    public string? Description { get; set; }
     public int? Order { get; set; }
-    public int? ParentId { get; set; }
+    public int? CourseId { get; set; }
 }
 
-public record GetModulesWithPaginationQuery
+public class GetModulesWithPaginationQuery
 {
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;

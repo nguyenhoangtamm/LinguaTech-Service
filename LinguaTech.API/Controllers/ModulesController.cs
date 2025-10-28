@@ -7,6 +7,7 @@ namespace LinguaTech.API.Controllers;
 
 public class ModulesController(ILogger<ModulesController> logger, IModuleService moduleService) : ApiControllerBase(logger)
 {
+    // POST /api/v1/modules/create
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateModuleRequest request, CancellationToken cancellationToken)
     {
@@ -30,20 +31,15 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
         }
     }
 
-    [HttpPost]
-    [Route("update/{id}")]
+    // POST /api/v1/modules/update/{id}
+    [HttpPost("update/{id}")]
     public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateModuleRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            if (id != request.Id)
-            {
-                return BadRequest("ID in route does not match ID in body");
-            }
+            LogInformation($"Updating module with ID: {id}");
 
-            LogInformation($"Updating module with ID: {request.Id}");
-
-            var result = await moduleService.Update(request.Id, request, cancellationToken);
+            var result = await moduleService.Update(id, request, cancellationToken);
 
             if (result.Succeeded)
             {
@@ -54,13 +50,13 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
         }
         catch (Exception ex)
         {
-            LogError($"Error updating module with ID: {request.Id}", ex);
+            LogError($"Error updating module with ID: {id}", ex);
             return StatusCode(500, "An error occurred while updating the module");
         }
     }
 
-    [HttpPost]
-    [Route("delete/{id}")]
+    // POST /api/v1/modules/delete/{id}
+    [HttpPost("delete/{id}")]
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
@@ -83,6 +79,7 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
         }
     }
 
+    // GET /api/v1/modules/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
@@ -103,76 +100,6 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
         {
             LogError($"Error getting module with ID: {id}", ex);
             return StatusCode(500, "An error occurred while retrieving the module");
-        }
-    }
-
-    [HttpGet]
-    [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            LogInformation("Getting all modules");
-
-            var result = await moduleService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            LogError("Error getting all modules", ex);
-            return StatusCode(500, "An error occurred while retrieving modules");
-        }
-    }
-
-    [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetModulesWithPagination([FromQuery] GetModulesWithPaginationQuery query, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            LogInformation($"Getting modules with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
-
-            var result = await moduleService.GetModulesWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            LogError("Error getting modules with pagination", ex);
-            return StatusCode(500, "An error occurred while retrieving modules");
-        }
-    }
-
-    [HttpGet("course/{courseId}")]
-    public async Task<IActionResult> GetByCourseId(int courseId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            LogInformation($"Getting modules for course ID: {courseId}");
-
-            var result = await moduleService.GetByCourseId(courseId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            LogError($"Error getting modules for course ID: {courseId}", ex);
-            return StatusCode(500, "An error occurred while retrieving modules");
         }
     }
 }

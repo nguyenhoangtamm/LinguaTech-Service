@@ -10,6 +10,7 @@ using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CourseTypeEntity = LinguaTech.Domain.Entities.CourseType;
 
 namespace LinguaTech.Application.Services;
 
@@ -30,7 +31,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
         {
             LogInformation($"Creating course type with name: {request.Name}");
 
-            var courseTypeRepository = _unitOfWork.Repository<CourseType>();
+            var courseTypeRepository = _unitOfWork.Repository<CourseTypeEntity>();
 
             // Check if course type name already exists
             var existingCourseType = await courseTypeRepository.Entities
@@ -42,7 +43,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
             }
 
             // Create course type entity
-            var courseType = new CourseType
+            var courseType = new CourseTypeEntity
             {
                 Name = request.Name,
                 Description = request.Description,
@@ -70,7 +71,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
         {
             LogInformation($"Updating course type with ID: {id}");
 
-            var courseTypeRepository = _unitOfWork.Repository<CourseType>();
+            var courseTypeRepository = _unitOfWork.Repository<CourseTypeEntity>();
             var courseType = await courseTypeRepository.GetByIdAsync(id);
 
             if (courseType == null)
@@ -122,7 +123,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
         {
             LogInformation($"Deleting course type with ID: {id}");
 
-            var courseTypeRepository = _unitOfWork.Repository<CourseType>();
+            var courseTypeRepository = _unitOfWork.Repository<CourseTypeEntity>();
             var courseType = await courseTypeRepository.GetByIdAsync(id);
 
             if (courseType == null)
@@ -159,7 +160,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
         {
             LogInformation($"Getting course type by ID: {id}");
 
-            var courseTypeRepository = _unitOfWork.Repository<CourseType>();
+            var courseTypeRepository = _unitOfWork.Repository<CourseTypeEntity>();
             var courseRepository = _unitOfWork.Repository<Course>();
 
             var courseType = await courseTypeRepository.GetByIdAsync(id);
@@ -169,7 +170,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
             }
 
             var courseTypeDto = _mapper.Map<GetCourseTypeDto>(courseType);
-            
+
             // Get courses count
             courseTypeDto.CoursesCount = await courseRepository.Entities
                 .CountAsync(c => c.CourseTypeId == id, cancellationToken);
@@ -190,14 +191,14 @@ public class CourseTypeService : BaseService, ICourseTypeService
         {
             LogInformation($"Getting all course types");
 
-            var courseTypeRepository = _unitOfWork.Repository<CourseType>();
+            var courseTypeRepository = _unitOfWork.Repository<CourseTypeEntity>();
             var courseRepository = _unitOfWork.Repository<Course>();
 
             var courseTypes = await courseTypeRepository.Entities
                 .ToListAsync(cancellationToken);
 
             var courseTypesDto = new List<GetAllCourseTypesDto>();
-            
+
             foreach (var courseType in courseTypes)
             {
                 var dto = _mapper.Map<GetAllCourseTypesDto>(courseType);
@@ -222,7 +223,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
         {
             LogInformation($"Getting course types with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var courseTypeRepository = _unitOfWork.Repository<CourseType>();
+            var courseTypeRepository = _unitOfWork.Repository<CourseTypeEntity>();
             var courseRepository = _unitOfWork.Repository<Course>();
             var queryable = courseTypeRepository.Entities.AsQueryable();
 
@@ -245,7 +246,7 @@ public class CourseTypeService : BaseService, ICourseTypeService
                 .ToListAsync(cancellationToken);
 
             var courseTypesDto = new List<GetCourseTypesWithPaginationDto>();
-            
+
             foreach (var courseType in courseTypes)
             {
                 var dto = _mapper.Map<GetCourseTypesWithPaginationDto>(courseType);

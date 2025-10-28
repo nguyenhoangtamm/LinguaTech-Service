@@ -8,16 +8,13 @@ public class UpdateAnswerRequestValidator : AbstractValidator<UpdateAnswerReques
     public UpdateAnswerRequestValidator()
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("Id must be greater than 0");
+            .GreaterThan(0);
 
         RuleFor(x => x.QuestionId)
-            .GreaterThan(0).WithMessage("QuestionId must be greater than 0");
+            .GreaterThan(0);
 
         RuleFor(x => x.AnswerText)
-            .NotEmpty().WithMessage("AnswerText is required")
-            .Length(1, 1000).WithMessage("AnswerText must be between 1 and 1000 characters");
-
-        RuleFor(x => x.IsCorrect)
-            .NotNull().WithMessage("IsCorrect is required");
+            .NotEmpty()
+            .MaximumLength(1000);
     }
 }

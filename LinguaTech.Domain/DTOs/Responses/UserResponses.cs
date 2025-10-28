@@ -58,3 +58,29 @@ public class GetUsersWithPaginationDto : IMapFrom<User>
     public string Email { get; set; } = string.Empty;
     public DateTime? CreatedDate { get; set; }
 }
+
+public class UserDashboardStatsResType
+{
+    public UserDashboardStatsData Data { get; set; } = new UserDashboardStatsData();
+    public string Message { get; set; } = string.Empty;
+}
+
+public class UserDashboardStatsData
+{
+    public int TotalCourses { get; set; }
+    public int CompletedCourses { get; set; }
+    public int InProgressCourses { get; set; }
+    public int TotalStudyHours { get; set; }
+    public int Streak { get; set; }
+    public List<AchievementType> Achievements { get; set; } = new List<AchievementType>();
+}
+
+public class AchievementType
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Icon { get; set; } = string.Empty;
+    public DateTime UnlockedAt { get; set; }
+    public string Type { get; set; } = string.Empty; // enum: course_completion|streak|study_hours|skill|other
+}

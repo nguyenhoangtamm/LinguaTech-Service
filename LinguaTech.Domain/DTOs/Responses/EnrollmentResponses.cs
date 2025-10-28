@@ -4,17 +4,68 @@ using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Domain.DTOs.Responses;
 
-public class EnrollmentResponse
+public class EnrollmentResType
 {
+    public EnrollmentType Data { get; set; } = new EnrollmentType();
+    public string Message { get; set; } = string.Empty;
 }
 
-public class EnrollmentDto : IMapFrom<Enrollment>
+public class EnrollmentType : IMapFrom<Enrollment>
 {
     public int Id { get; set; }
     public int UserId { get; set; }
     public int CourseId { get; set; }
-    public double Progress { get; set; }
-    public EnrollmentStatus Status { get; set; }
+    public DateTime EnrolledAt { get; set; }
+    public string Status { get; set; } = string.Empty; // enum: active|completed|paused|cancelled
+    public EnrollmentProgressType Progress { get; set; } = new EnrollmentProgressType();
+}
+
+public class EnrollmentProgressType : IMapFrom<EnrollmentProgress>
+{
+    public int CourseId { get; set; }
+    public int UserId { get; set; }
+    public int CompletedLessons { get; set; }
+    public int TotalLessons { get; set; }
+    public double ProgressPercentage { get; set; }
+    public DateTime LastAccessedAt { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+public class UserEnrollmentsResType
+{
+    public List<UserEnrollmentType> Data { get; set; } = new List<UserEnrollmentType>();
+    public string Message { get; set; } = string.Empty;
+}
+
+public class UserEnrollmentType
+{
+    public EnrollmentType Enrollment { get; set; } = new EnrollmentType();
+    public CourseType Course { get; set; } = new CourseType();
+}
+
+public class CheckEnrollmentResType
+{
+    public CheckEnrollmentData Data { get; set; } = new CheckEnrollmentData();
+}
+
+public class CheckEnrollmentData
+{
+    public bool IsEnrolled { get; set; }
+    public EnrollmentType? Enrollment { get; set; }
+}
+
+public class UpdateProgressResType
+{
+    public UpdateProgressData Data { get; set; } = new UpdateProgressData();
+    public string Message { get; set; } = string.Empty;
+}
+
+public class UpdateProgressData
+{
+    public double ProgressPercentage { get; set; }
+    public int CompletedLessons { get; set; }
+    public int TotalLessons { get; set; }
 }
 
 public class GetEnrollmentDto : IMapFrom<Enrollment>
@@ -22,14 +73,9 @@ public class GetEnrollmentDto : IMapFrom<Enrollment>
     public int Id { get; set; }
     public int UserId { get; set; }
     public int CourseId { get; set; }
-    public double Progress { get; set; }
-    public EnrollmentStatus Status { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public string CourseTitle { get; set; } = string.Empty;
-    public DateTime? CreatedDate { get; set; }
-    public DateTime? UpdatedDate { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
-    public string? UpdatedBy { get; set; }
+    public DateTime EnrolledAt { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public CourseType Course { get; set; } = new CourseType();
 }
 
 public class GetAllEnrollmentsDto : IMapFrom<Enrollment>
@@ -37,11 +83,9 @@ public class GetAllEnrollmentsDto : IMapFrom<Enrollment>
     public int Id { get; set; }
     public int UserId { get; set; }
     public int CourseId { get; set; }
-    public double Progress { get; set; }
-    public EnrollmentStatus Status { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public string CourseTitle { get; set; } = string.Empty;
-    public DateTime? CreatedDate { get; set; }
+    public DateTime EnrolledAt { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public CourseType Course { get; set; } = new CourseType();
 }
 
 public class GetEnrollmentsWithPaginationDto : IMapFrom<Enrollment>
@@ -49,9 +93,7 @@ public class GetEnrollmentsWithPaginationDto : IMapFrom<Enrollment>
     public int Id { get; set; }
     public int UserId { get; set; }
     public int CourseId { get; set; }
-    public double Progress { get; set; }
-    public EnrollmentStatus Status { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public string CourseTitle { get; set; } = string.Empty;
-    public DateTime? CreatedDate { get; set; }
+    public DateTime EnrolledAt { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public CourseType Course { get; set; } = new CourseType();
 }

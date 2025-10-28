@@ -7,39 +7,51 @@ public class UpdateMaterialRequestValidator : AbstractValidator<UpdateMaterialRe
 {
     public UpdateMaterialRequestValidator()
     {
-        RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("Id must be greater than 0");
+        When(x => x.Title != null, () =>
+        {
+            RuleFor(x => x.Title)
+                .NotEmpty()
+                .MaximumLength(200);
+        });
 
-        RuleFor(x => x.FileName)
-            .Length(1, 255).WithMessage("FileName must be between 1 and 255 characters")
-            .Matches(@"^[a-zA-Z0-9\-_\.\s]+$").WithMessage("FileName contains invalid characters")
-            .When(x => !string.IsNullOrEmpty(x.FileName));
+        When(x => x.FileName != null, () =>
+        {
+            RuleFor(x => x.FileName)
+                .NotEmpty()
+                .MaximumLength(255);
+        });
 
-        RuleFor(x => x.FileUrl)
-            .MaximumLength(500).WithMessage("FileUrl must not exceed 500 characters")
-            .Must(BeAValidUrl).WithMessage("FileUrl must be a valid URL")
-            .When(x => !string.IsNullOrEmpty(x.FileUrl));
+        When(x => x.FileUrl != null, () =>
+        {
+            RuleFor(x => x.FileUrl)
+                .NotEmpty()
+                .MaximumLength(500);
+        });
 
-        RuleFor(x => x.FileType)
-            .Must(BeAValidFileType).WithMessage("FileType must be a valid file type (pdf, doc, docx, ppt, pptx, xls, xlsx, jpg, jpeg, png, gif, mp4, avi, mp3, wav)")
-            .When(x => !string.IsNullOrEmpty(x.FileType));
+        When(x => x.FileType != null, () =>
+        {
+            RuleFor(x => x.FileType)
+                .NotEmpty()
+                .Must(BeValidFileType)
+                .WithMessage("FileType must be one of: pdf, video, image, document, audio");
+        });
 
-        RuleFor(x => x.Size)
-            .GreaterThan(0).WithMessage("Size must be greater than 0")
-            .LessThanOrEqualTo(500 * 1024 * 1024).WithMessage("File size cannot exceed 500MB")
-            .When(x => x.Size.HasValue);
+        When(x => x.Size.HasValue, () =>
+        {
+            RuleFor(x => x.Size.Value)
+                .GreaterThan(0);
+        });
+
+        When(x => x.LessonId.HasValue, () =>
+        {
+            RuleFor(x => x.LessonId.Value)
+                .GreaterThan(0);
+        });
     }
 
-    private bool BeAValidUrl(string url)
+    private bool BeValidFileType(string fileType)
     {
-        return Uri.TryCreate(url, UriKind.Absolute, out var result) &&
-               (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps);
-    }
-
-    private bool BeAValidFileType(string fileType)
-    {
-        var validTypes = new[] { "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx",
-                                "jpg", "jpeg", "png", "gif", "mp4", "avi", "mp3", "wav" };
+        var validTypes = new[] { "pdf", "video", "image", "document", "audio" };
         return validTypes.Contains(fileType.ToLower());
     }
 }

@@ -9,7 +9,8 @@ public interface ICourseService
     Task<Result<int>> Create(CreateCourseRequest request, CancellationToken cancellationToken);
     Task<Result<int>> Update(int id, UpdateCourseRequest request, CancellationToken cancellationToken);
     Task<Result<int>> Delete(int id, CancellationToken cancellationToken);
-    Task<Result<GetCourseDto>> GetById(int id, CancellationToken cancellationToken);
-    Task<Result<List<GetAllCoursesDto>>> GetAll(CancellationToken cancellationToken);
-    Task<Result<PaginatedResult<GetCoursesWithPaginationDto>>> GetCoursesWithPagination(GetCoursesWithPaginationQuery query, CancellationToken cancellationToken);
+    Task<Result<CourseType>> GetById(int id, CancellationToken cancellationToken);
+    Task<Result<CourseDetailResType>> GetCourseDetail(int id, CancellationToken cancellationToken);
+    Task<Result<PaginatedResult<CourseType>>> GetCoursesWithPagination(GetCoursesWithPaginationQuery query, CancellationToken cancellationToken);
+    Task<Result<List<CourseCategoryType>>> GetCategories(CancellationToken cancellationToken);
 }

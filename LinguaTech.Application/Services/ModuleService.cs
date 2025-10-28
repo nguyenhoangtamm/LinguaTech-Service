@@ -40,22 +40,6 @@ public class ModuleService : BaseService, IModuleService
                 return Result<int>.Failure("Course not found");
             }
 
-            // Check if parent module exists (if specified)
-            if (request.ParentId.HasValue)
-            {
-                var parentModule = await moduleRepository.GetByIdAsync(request.ParentId.Value);
-                if (parentModule == null)
-                {
-                    return Result<int>.Failure("Parent module not found");
-                }
-
-                // Check if parent module belongs to the same course
-                if (parentModule.CourseId != request.CourseId)
-                {
-                    return Result<int>.Failure("Parent module must belong to the same course");
-                }
-            }
-
             // Check if module title already exists in the same course
             var existingModule = await moduleRepository.Entities
                 .FirstOrDefaultAsync(m => m.Title == request.Title && m.CourseId == request.CourseId, cancellationToken);
@@ -71,7 +55,6 @@ public class ModuleService : BaseService, IModuleService
                 CourseId = request.CourseId,
                 Title = request.Title,
                 Order = request.Order,
-                ParentId = request.ParentId,
                 CreatedDate = DateTime.UtcNow,
                 CreatedBy = UserName ?? "System"
             };
@@ -115,37 +98,12 @@ public class ModuleService : BaseService, IModuleService
                 }
             }
 
-            // Check if parent module exists (if specified)
-            if (request.ParentId.HasValue)
-            {
-                var parentModule = await moduleRepository.GetByIdAsync(request.ParentId.Value);
-                if (parentModule == null)
-                {
-                    return Result<int>.Failure("Parent module not found");
-                }
-
-                // Check if parent module belongs to the same course
-                if (parentModule.CourseId != module.CourseId)
-                {
-                    return Result<int>.Failure("Parent module must belong to the same course");
-                }
-
-                // Prevent circular reference
-                if (request.ParentId.Value == id)
-                {
-                    return Result<int>.Failure("Module cannot be its own parent");
-                }
-            }
-
             // Update module properties
             if (!string.IsNullOrEmpty(request.Title))
                 module.Title = request.Title;
 
             if (request.Order.HasValue)
                 module.Order = request.Order.Value;
-
-            if (request.ParentId != module.ParentId)
-                module.ParentId = request.ParentId;
 
             module.UpdatedDate = DateTime.UtcNow;
             module.UpdatedBy = UserName ?? "System";
@@ -214,7 +172,7 @@ public class ModuleService : BaseService, IModuleService
         }
     }
 
-    public async Task<Result<GetModuleDto>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<Result<ModuleWithLessonsType>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
@@ -224,22 +182,23 @@ public class ModuleService : BaseService, IModuleService
             var module = await moduleRepository.Entities
                 .Include(m => m.Course)
                 .Include(m => m.Parent)
+                .Include(m => m.Lessons)
                 .Where(m => m.Id == id && !m.IsDeleted)
-                .ProjectTo<GetModuleDto>(_mapper.ConfigurationProvider)
+                .ProjectTo<ModuleWithLessonsType>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (module == null)
             {
-                return Result<GetModuleDto>.Failure("Module not found");
+                return Result<ModuleWithLessonsType>.Failure("Module not found");
             }
 
             LogInformation($"Module retrieved successfully with ID: {id}");
-            return Result<GetModuleDto>.Success(module, "Module retrieved successfully");
+            return Result<ModuleWithLessonsType>.Success(module, "Module retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError($"Error getting module with ID: {id}", ex);
-            return Result<GetModuleDto>.Failure("An error occurred while retrieving the module");
+            return Result<ModuleWithLessonsType>.Failure("An error occurred while retrieving the module");
         }
     }
 
@@ -317,7 +276,7 @@ public class ModuleService : BaseService, IModuleService
         }
     }
 
-    public async Task<Result<List<GetAllModulesDto>>> GetByCourseId(int courseId, CancellationToken cancellationToken)
+    public async Task<Result<List<ModuleWithLessonsType>>> GetByCourseId(int courseId, CancellationToken cancellationToken)
     {
         try
         {
@@ -330,24 +289,25 @@ public class ModuleService : BaseService, IModuleService
             var course = await courseRepository.GetByIdAsync(courseId);
             if (course == null)
             {
-                return Result<List<GetAllModulesDto>>.Failure("Course not found");
+                return Result<List<ModuleWithLessonsType>>.Failure("Course not found");
             }
 
             var modules = await moduleRepository.Entities
                 .Include(m => m.Course)
                 .Include(m => m.Parent)
+                .Include(m => m.Lessons)
                 .Where(m => m.CourseId == courseId && !m.IsDeleted)
                 .OrderBy(m => m.Order)
-                .ProjectTo<GetAllModulesDto>(_mapper.ConfigurationProvider)
+                .ProjectTo<ModuleWithLessonsType>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
 
             LogInformation($"Retrieved {modules.Count} modules for course ID: {courseId} successfully");
-            return Result<List<GetAllModulesDto>>.Success(modules, "Modules retrieved successfully");
+            return Result<List<ModuleWithLessonsType>>.Success(modules, "Modules retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError($"Error getting modules for course ID: {courseId}", ex);
-            return Result<List<GetAllModulesDto>>.Failure("An error occurred while retrieving modules");
+            return Result<List<ModuleWithLessonsType>>.Failure("An error occurred while retrieving modules");
         }
     }
 }

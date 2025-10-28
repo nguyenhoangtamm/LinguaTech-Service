@@ -1,7 +1,6 @@
 using AutoMapper;
 using FluentValidation;
 using LinguaTech.Application.Services;
-using LinguaTech.Application.Validators.Menu;
 using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Entities;
@@ -19,23 +18,14 @@ public class MenuService : BaseService, IMenuService
 {
     private readonly RoleManager<Role> _roleManager;
     private readonly UserManager<User> _userManager;
-    private readonly IValidator<CreateMenuRequest> _createMenuValidator;
-    private readonly IValidator<UpdateMenuRequest> _updateMenuValidator;
-    private readonly IValidator<AssignMenuToRoleRequest> _assignMenuToRoleValidator;
 
     public MenuService(IHttpContextAccessor httpContextAccessor, ILogger<MenuService> logger,
         IUnitOfWork unitOfWork, IMapper mapper, RoleManager<Role> roleManager,
-        UserManager<User> userManager,
-        IValidator<CreateMenuRequest> createMenuValidator,
-        IValidator<UpdateMenuRequest> updateMenuValidator,
-        IValidator<AssignMenuToRoleRequest> assignMenuToRoleValidator)
+        UserManager<User> userManager)
         : base(httpContextAccessor, logger, unitOfWork, mapper)
     {
         _roleManager = roleManager;
         _userManager = userManager;
-        _createMenuValidator = createMenuValidator;
-        _updateMenuValidator = updateMenuValidator;
-        _assignMenuToRoleValidator = assignMenuToRoleValidator;
     }
 
     public async Task<Result<List<MenuResponse>>> GetAll(CancellationToken cancellationToken)
@@ -191,13 +181,19 @@ public class MenuService : BaseService, IMenuService
         {
             LogInformation($"Creating menu with name: {request.Name}");
 
-            // Validate request using FluentValidation
-            var validationResult = await _createMenuValidator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
+            // Simple validation
+            if (string.IsNullOrWhiteSpace(request.Name))
             {
-                var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                LogError($"Validation failed for creating menu: {errors}", new ValidationException(validationResult.Errors));
-                return Result<int>.Failure($"Validation failed: {errors}");
+                return Result<int>.Failure("Menu name is required");
+            }
+
+            // Check for duplicate menu name
+            var existingMenu = await _unitOfWork.Repository<Menu>().Entities
+                .FirstOrDefaultAsync(m => m.Name == request.Name && !m.IsDeleted, cancellationToken);
+
+            if (existingMenu != null)
+            {
+                return Result<int>.Failure("Menu with this name already exists");
             }
 
             var menu = _mapper.Map<Menu>(request);
@@ -228,34 +224,29 @@ public class MenuService : BaseService, IMenuService
                 return Result<int>.Failure("Menu not found");
             }
 
-            // Validate request using FluentValidation
-            var validationResult = await _updateMenuValidator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
+            // Simple validation
+            if (!string.IsNullOrWhiteSpace(request.Name))
             {
-                var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                LogError($"Validation failed for updating menu: {errors}", new ValidationException(validationResult.Errors));
-                return Result<int>.Failure($"Validation failed: {errors}");
+                // Check for duplicate menu name (excluding current menu)
+                var existingMenu = await _unitOfWork.Repository<Menu>().Entities
+                    .FirstOrDefaultAsync(m => m.Name == request.Name && m.Id != id && !m.IsDeleted, cancellationToken);
+
+                if (existingMenu != null)
+                {
+                    return Result<int>.Failure("Menu with this name already exists");
+                }
             }
 
-            // Additional validation for uniqueness (need to pass current menu ID)
-            var updateValidator = (UpdateMenuRequestValidator)_updateMenuValidator;
-            var nameUnique = await updateValidator.BeUniqueMenuNameForUpdate(request.Name, id, cancellationToken);
-            var pathUnique = await updateValidator.BeUniqueMenuPathForUpdate(request.Path, id, cancellationToken);
-            var noCircularRef = await updateValidator.NotCircularReference(request.ParentId, id, cancellationToken);
-
-            if (!nameUnique)
+            if (!string.IsNullOrWhiteSpace(request.Path))
             {
-                return Result<int>.Failure("Menu name already exists");
-            }
+                // Check for duplicate menu path (excluding current menu)
+                var existingPathMenu = await _unitOfWork.Repository<Menu>().Entities
+                    .FirstOrDefaultAsync(m => m.Path == request.Path && m.Id != id && !m.IsDeleted, cancellationToken);
 
-            if (!pathUnique)
-            {
-                return Result<int>.Failure("Menu path already exists");
-            }
-
-            if (!noCircularRef)
-            {
-                return Result<int>.Failure("Circular reference detected");
+                if (existingPathMenu != null)
+                {
+                    return Result<int>.Failure("Menu with this path already exists");
+                }
             }
 
             _mapper.Map(request, menu);
@@ -319,13 +310,15 @@ public class MenuService : BaseService, IMenuService
         {
             LogInformation($"Assigning menus to role ID: {request.RoleId}");
 
-            // Validate request using FluentValidation
-            var validationResult = await _assignMenuToRoleValidator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
+            // Simple validation
+            if (request.RoleId <= 0)
             {
-                var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                LogError($"Validation failed for assigning menus to role: {errors}", new ValidationException(validationResult.Errors));
-                return Result<int>.Failure($"Validation failed: {errors}");
+                return Result<int>.Failure("Invalid role ID");
+            }
+
+            if (request.MenuIds == null || !request.MenuIds.Any())
+            {
+                return Result<int>.Failure("Menu IDs are required");
             }
 
             // Remove existing role menus

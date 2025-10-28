@@ -310,4 +310,55 @@ public class UserService : BaseService, IUserService
             return Result<GetUserDto>.Failure("An error occurred while retrieving current user information");
         }
     }
+
+    public async Task<Result<UserDashboardStatsResType>> GetDashboardStats(CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation("Getting user dashboard statistics");
+
+            var currentUserId = UserId;
+            if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var userIdInt))
+            {
+                return Result<UserDashboardStatsResType>.Failure("Invalid user ID");
+            }
+
+            var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
+            var courseRepository = _unitOfWork.Repository<Course>();
+
+            // Get user enrollments count
+            var totalEnrollments = await enrollmentRepository.Entities
+                .CountAsync(e => e.UserId == userIdInt && !e.IsDeleted, cancellationToken);
+
+            // Get completed courses count
+            var completedCourses = await enrollmentRepository.Entities
+                .CountAsync(e => e.UserId == userIdInt && e.Status == EnrollmentStatus.Completed && !e.IsDeleted, cancellationToken);
+
+            // Get total available courses count
+            var totalCourses = await courseRepository.Entities
+                .CountAsync(c => c.IsPublished && !c.IsDeleted, cancellationToken);
+
+            var dashboardStats = new UserDashboardStatsResType
+            {
+                Data = new UserDashboardStatsData
+                {
+                    TotalCourses = totalCourses,
+                    CompletedCourses = completedCourses,
+                    InProgressCourses = totalEnrollments - completedCourses,
+                    TotalStudyHours = 0, // Placeholder - would need actual calculation
+                    Streak = 0, // Placeholder - would need actual calculation
+                    Achievements = new List<AchievementType>() // Placeholder
+                },
+                Message = "Dashboard statistics retrieved successfully"
+            };
+
+            LogInformation("Dashboard statistics retrieved successfully");
+            return Result<UserDashboardStatsResType>.Success(dashboardStats, "Dashboard statistics retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting dashboard statistics", ex);
+            return Result<UserDashboardStatsResType>.Failure("An error occurred while retrieving dashboard statistics");
+        }
+    }
 }

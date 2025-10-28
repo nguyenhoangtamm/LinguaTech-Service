@@ -184,7 +184,7 @@ public class MaterialService : BaseService, IMaterialService
         }
     }
 
-    public async Task<Result<GetMaterialDto>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<Result<MaterialType>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
@@ -193,21 +193,21 @@ public class MaterialService : BaseService, IMaterialService
             var materialRepository = _unitOfWork.Repository<Material>();
             var material = await materialRepository.Entities
                 .Where(m => m.Id == id && !m.IsDeleted)
-                .ProjectTo<GetMaterialDto>(_mapper.ConfigurationProvider)
+                .ProjectTo<MaterialType>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (material == null)
             {
-                return Result<GetMaterialDto>.Failure("Material not found");
+                return Result<MaterialType>.Failure("Material not found");
             }
 
             LogInformation($"Material retrieved successfully with ID: {id}");
-            return Result<GetMaterialDto>.Success(material, "Material retrieved successfully");
+            return Result<MaterialType>.Success(material, "Material retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError($"Error getting material with ID: {id}", ex);
-            return Result<GetMaterialDto>.Failure("An error occurred while retrieving the material");
+            return Result<MaterialType>.Failure("An error occurred while retrieving the material");
         }
     }
 
@@ -281,6 +281,82 @@ public class MaterialService : BaseService, IMaterialService
         {
             LogError("Error getting materials with pagination", ex);
             return Result<PaginatedResult<GetMaterialsWithPaginationDto>>.Failure("An error occurred while retrieving materials");
+        }
+    }
+
+    public async Task<Result<List<MaterialType>>> GetByLessonId(int lessonId, GetMaterialsWithPaginationQuery query, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Getting materials for lesson ID: {lessonId} with pagination");
+
+            var lessonMaterialRepository = _unitOfWork.Repository<LessonMaterial>();
+            var materialsQuery = lessonMaterialRepository.Entities
+                .Where(lm => lm.LessonId == lessonId && !lm.IsDeleted)
+                .Select(lm => lm.Material)
+                .Where(m => !m.IsDeleted);
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(query.Keyword))
+            {
+                materialsQuery = materialsQuery.Where(m => m.FileName.Contains(query.Keyword));
+            }
+
+            if (!string.IsNullOrEmpty(query.FileType))
+            {
+                materialsQuery = materialsQuery.Where(m => m.FileType == query.FileType);
+            }
+
+            if (query.MinSize.HasValue)
+            {
+                materialsQuery = materialsQuery.Where(m => m.Size >= query.MinSize.Value);
+            }
+
+            if (query.MaxSize.HasValue)
+            {
+                materialsQuery = materialsQuery.Where(m => m.Size <= query.MaxSize.Value);
+            }
+
+            var materials = await materialsQuery
+                .OrderBy(m => m.FileName)
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ProjectTo<MaterialType>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
+
+            LogInformation($"Retrieved {materials.Count} materials for lesson ID: {lessonId} successfully");
+            return Result<List<MaterialType>>.Success(materials, "Materials retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error getting materials for lesson ID: {lessonId}", ex);
+            return Result<List<MaterialType>>.Failure("An error occurred while retrieving materials");
+        }
+    }
+
+    public async Task<Result<byte[]>> Download(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Downloading material with ID: {id}");
+
+            var materialRepository = _unitOfWork.Repository<Material>();
+            var material = await materialRepository.GetByIdAsync(id);
+
+            if (material == null)
+            {
+                return Result<byte[]>.Failure("Material not found");
+            }
+
+            // Here you would implement the actual file download logic
+            // For now, return empty byte array as placeholder
+            LogInformation($"Material downloaded successfully with ID: {id}");
+            return Result<byte[]>.Success(new byte[0], "Material downloaded successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error downloading material with ID: {id}", ex);
+            return Result<byte[]>.Failure("An error occurred while downloading the material");
         }
     }
 }

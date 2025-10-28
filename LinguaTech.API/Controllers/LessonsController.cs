@@ -1,143 +1,30 @@
+using LinguaTech.Application.Services;
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
+using LinguaTech.Domain.Entities;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
 
-public class LessonsController(ILogger<LessonsController> logger, ILessonService lessonService) : ApiControllerBase(logger)
+[ApiController]
+public class LessonsController(ILogger<LessonsController> logger, ILessonService lessonService, IMaterialService materialService) : ApiControllerBase(logger)
 {
-    [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateLessonRequest request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            LogInformation($"Creating lesson with title: {request.Title}");
+    private readonly ILessonService _lessonService = lessonService;
+    private readonly IMaterialService _materialService = materialService;
 
-            var result = await lessonService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            LogError("Error creating lesson", ex);
-            return StatusCode(500, "An error occurred while creating the lesson");
-        }
-    }
-
-    [HttpPost]
-    [Route("update/{id}")]
-    public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (id != request.Id)
-            {
-                return BadRequest("ID in route does not match ID in body");
-            }
-
-            LogInformation($"Updating lesson with ID: {request.Id}");
-
-            var result = await lessonService.Update(request.Id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            LogError($"Error updating lesson with ID: {request.Id}", ex);
-            return StatusCode(500, "An error occurred while updating the lesson");
-        }
-    }
-
-    [HttpPost]
-    [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
-    {
-        try
-        {
-            LogInformation($"Deleting lesson with ID: {id}");
-
-            var result = await lessonService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            LogError($"Error deleting lesson with ID: {id}", ex);
-            return StatusCode(500, "An error occurred while deleting the lesson");
-        }
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
-    {
-        try
-        {
-            LogInformation($"Getting lesson with ID: {id}");
-
-            var result = await lessonService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
-        }
-        catch (Exception ex)
-        {
-            LogError($"Error getting lesson with ID: {id}", ex);
-            return StatusCode(500, "An error occurred while retrieving the lesson");
-        }
-    }
-
+    // GET /api/v1/lessons
     [HttpGet]
-    [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetLessons([FromQuery] GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
-            LogInformation("Getting all lessons");
+            LogInformation($"Getting lessons with pagination - Page: {query.PageNumber}, Limit: {query.PageSize}");
 
-            var result = await lessonService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            LogError("Error getting all lessons", ex);
-            return StatusCode(500, "An error occurred while retrieving lessons");
-        }
-    }
-
-    [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetLessonsWithPagination([FromQuery] GetLessonsWithPaginationQuery query, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            LogInformation($"Getting lessons with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
-
-            var result = await lessonService.GetLessonsWithPagination(query, cancellationToken);
+            var result = await _lessonService.GetLessonsWithPagination(query, cancellationToken);
 
             if (result.Succeeded)
             {
@@ -153,14 +40,41 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
         }
     }
 
-    [HttpGet("module/{moduleId}")]
-    public async Task<IActionResult> GetByModuleId(int moduleId, CancellationToken cancellationToken = default)
+    // GET /api/v1/lessons/{id}
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetLesson(int id, CancellationToken cancellationToken)
     {
         try
         {
-            LogInformation($"Getting lessons for module ID: {moduleId}");
+            LogInformation($"Getting lesson with ID: {id}");
 
-            var result = await lessonService.GetByModuleId(moduleId, cancellationToken);
+            var result = await _lessonService.GetById(id, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return NotFound(result);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error getting lesson with ID: {id}", ex);
+            return StatusCode(500, "An error occurred while retrieving the lesson");
+        }
+    }
+
+    // POST /api/v1/lessons/create
+    [HttpPost("create")]
+    [Authorize]
+    public async Task<IActionResult> CreateLesson([FromBody] CreateLessonRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Creating lesson with title: {request.Title}");
+
+            var result = await _lessonService.Create(request, cancellationToken);
 
             if (result.Succeeded)
             {
@@ -171,8 +85,83 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
         }
         catch (Exception ex)
         {
-            LogError($"Error getting lessons for module ID: {moduleId}", ex);
-            return StatusCode(500, "An error occurred while retrieving lessons");
+            LogError("Error creating lesson", ex);
+            return StatusCode(500, "An error occurred while creating the lesson");
+        }
+    }
+
+    // POST /api/v1/lessons/update/{id}
+    [HttpPost("update/{id}")]
+    [Authorize]
+    public async Task<IActionResult> UpdateLesson([FromRoute] int id, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Updating lesson with ID: {id}");
+
+            var result = await _lessonService.Update(id, request, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error updating lesson with ID: {id}", ex);
+            return StatusCode(500, "An error occurred while updating the lesson");
+        }
+    }
+
+    // POST /api/v1/lessons/delete/{id}
+    [HttpPost("delete/{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteLesson([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Deleting lesson with ID: {id}");
+
+            var result = await _lessonService.Delete(id, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error deleting lesson with ID: {id}", ex);
+            return StatusCode(500, "An error occurred while deleting the lesson");
+        }
+    }
+
+    // POST /api/v1/lessons/complete/{id}
+    [HttpPost("complete/{id}")]
+    [Authorize]
+    public async Task<IActionResult> CompleteLesson(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Completing lesson with ID: {id}");
+
+            var result = await _lessonService.CompleteLesson(id, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error completing lesson with ID: {id}", ex);
+            return StatusCode(500, "An error occurred while completing the lesson");
         }
     }
 }

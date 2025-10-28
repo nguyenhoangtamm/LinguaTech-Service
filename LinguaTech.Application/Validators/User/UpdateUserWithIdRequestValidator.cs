@@ -1,5 +1,6 @@
 using FluentValidation;
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Application.Validators.User;
 
@@ -7,19 +8,56 @@ public class UpdateUserWithIdRequestValidator : AbstractValidator<UpdateUserWith
 {
     public UpdateUserWithIdRequestValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id)
+            .GreaterThan(0);
 
-        RuleFor(x => x.Username)
-            .Length(3, 100)
-            .When(x => !string.IsNullOrEmpty(x.Username));
+        When(x => x.Username != null, () =>
+        {
+            RuleFor(x => x.Username)
+                .NotEmpty()
+                .MaximumLength(50);
+        });
 
-        RuleFor(x => x.Email)
-            .EmailAddress()
-            .MaximumLength(255)
-            .When(x => !string.IsNullOrEmpty(x.Email));
+        When(x => x.Email != null, () =>
+        {
+            RuleFor(x => x.Email)
+                .NotEmpty()
+                .EmailAddress()
+                .MaximumLength(100);
+        });
 
-        RuleFor(x => x.Password)
-            .MinimumLength(6)
-            .When(x => !string.IsNullOrEmpty(x.Password));
+        When(x => x.Password != null, () =>
+        {
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .MinimumLength(6)
+                .MaximumLength(100);
+        });
+
+        When(x => x.FirstName != null, () =>
+        {
+            RuleFor(x => x.FirstName)
+                .NotEmpty()
+                .MaximumLength(50);
+        });
+
+        When(x => x.LastName != null, () =>
+        {
+            RuleFor(x => x.LastName)
+                .NotEmpty()
+                .MaximumLength(50);
+        });
+
+        When(x => x.RoleId.HasValue, () =>
+        {
+            RuleFor(x => x.RoleId.Value)
+                .GreaterThan(0);
+        });
+
+        When(x => x.Status.HasValue, () =>
+        {
+            RuleFor(x => x.Status.Value)
+                .IsInEnum();
+        });
     }
 }

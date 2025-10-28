@@ -8,22 +8,19 @@ public class CreateAssignmentRequestValidator : AbstractValidator<CreateAssignme
     public CreateAssignmentRequestValidator()
     {
         RuleFor(x => x.LessonId)
-            .GreaterThan(0).WithMessage("LessonId must be greater than 0");
+            .GreaterThan(0);
 
         RuleFor(x => x.Title)
-            .NotEmpty().WithMessage("Title is required")
-            .Length(3, 200).WithMessage("Title must be between 3 and 200 characters");
+            .NotEmpty()
+            .MaximumLength(200);
 
         RuleFor(x => x.Description)
-            .NotEmpty().WithMessage("Description is required")
-            .Length(10, 2000).WithMessage("Description must be between 10 and 2000 characters");
+            .MaximumLength(1000);
 
         RuleFor(x => x.DueDate)
-            .NotEmpty().WithMessage("DueDate is required")
-            .GreaterThan(DateTime.Now).WithMessage("DueDate must be in the future");
+            .GreaterThan(DateTime.Now);
 
         RuleFor(x => x.MaxScore)
-            .GreaterThan(0).WithMessage("MaxScore must be greater than 0")
-            .LessThanOrEqualTo(1000).WithMessage("MaxScore must not exceed 1000");
+            .GreaterThan(0);
     }
 }

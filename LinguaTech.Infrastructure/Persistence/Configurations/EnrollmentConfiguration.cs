@@ -14,8 +14,11 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
         builder.Property(e => e.Status)
             .IsRequired();
 
-        builder.Property(e => e.Progress)
-            .HasPrecision(5, 2);
+        // Relationships
+        builder.HasOne(e => e.Progress)
+            .WithOne(ep => ep.Enrollment)
+            .HasForeignKey<EnrollmentProgress>(ep => ep.EnrollmentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Composite unique index
         builder.HasIndex(e => new { e.UserId, e.CourseId })

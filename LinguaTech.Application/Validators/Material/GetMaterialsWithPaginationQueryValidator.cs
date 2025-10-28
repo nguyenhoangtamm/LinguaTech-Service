@@ -7,35 +7,55 @@ public class GetMaterialsWithPaginationQueryValidator : AbstractValidator<GetMat
 {
     public GetMaterialsWithPaginationQueryValidator()
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThan(0).WithMessage("PageNumber must be greater than 0");
+        When(x => x.LessonId.HasValue, () =>
+        {
+            RuleFor(x => x.LessonId.Value)
+                .GreaterThan(0);
+        });
 
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("PageSize must be between 1 and 100");
+        When(x => x.Type != null, () =>
+        {
+            RuleFor(x => x.Type)
+                .Must(BeValidFileType)
+                .WithMessage("Type must be one of: pdf, video, image, document, audio");
+        });
 
         RuleFor(x => x.Keyword)
-            .MaximumLength(100).WithMessage("Keyword must not exceed 100 characters")
-            .When(x => !string.IsNullOrEmpty(x.Keyword));
+            .MaximumLength(100);
 
         RuleFor(x => x.FileType)
-            .Must(BeAValidFileType).WithMessage("FileType must be a valid file type (pdf, doc, docx, ppt, pptx, xls, xlsx, jpg, jpeg, png, gif, mp4, avi, mp3, wav)")
-            .When(x => !string.IsNullOrEmpty(x.FileType));
+            .MaximumLength(50);
 
-        RuleFor(x => x.MinSize)
-            .GreaterThanOrEqualTo(0).WithMessage("MinSize must be greater than or equal to 0")
-            .LessThan(x => x.MaxSize).WithMessage("MinSize must be less than MaxSize")
-            .When(x => x.MinSize.HasValue);
+        When(x => x.MinSize.HasValue, () =>
+        {
+            RuleFor(x => x.MinSize.Value)
+                .GreaterThanOrEqualTo(0);
+        });
 
-        RuleFor(x => x.MaxSize)
-            .GreaterThan(0).WithMessage("MaxSize must be greater than 0")
-            .LessThanOrEqualTo(500 * 1024 * 1024).WithMessage("MaxSize cannot exceed 500MB")
-            .When(x => x.MaxSize.HasValue);
+        When(x => x.MaxSize.HasValue, () =>
+        {
+            RuleFor(x => x.MaxSize.Value)
+                .GreaterThan(0);
+        });
+
+        When(x => x.MinSize.HasValue && x.MaxSize.HasValue, () =>
+        {
+            RuleFor(x => x)
+                .Must(x => x.MaxSize >= x.MinSize)
+                .WithMessage("MaxSize must be greater than or equal to MinSize");
+        });
+
+        RuleFor(x => x.PageNumber)
+            .GreaterThan(0);
+
+        RuleFor(x => x.PageSize)
+            .GreaterThan(0)
+            .LessThanOrEqualTo(100);
     }
 
-    private bool BeAValidFileType(string fileType)
+    private bool BeValidFileType(string type)
     {
-        var validTypes = new[] { "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx",
-                                "jpg", "jpeg", "png", "gif", "mp4", "avi", "mp3", "wav" };
-        return validTypes.Contains(fileType.ToLower());
+        var validTypes = new[] { "pdf", "video", "image", "document", "audio" };
+        return validTypes.Contains(type.ToLower());
     }
 }

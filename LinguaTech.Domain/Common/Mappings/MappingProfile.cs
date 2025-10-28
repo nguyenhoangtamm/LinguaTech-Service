@@ -2,6 +2,7 @@ using System.Reflection;
 using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Entities;
 using ProfileEntity = LinguaTech.Domain.Entities.Profile;
+using CourseTypeEntity = LinguaTech.Domain.Entities.CourseType;
 
 namespace LinguaTech.Domain.Common.Mappings;
 
@@ -46,37 +47,33 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl));
 
-        // CourseType mappings
-        CreateMap<CourseType, CourseTypeDto>();
-        CreateMap<CourseType, GetCourseTypeDto>();
-        CreateMap<CourseType, GetAllCourseTypesDto>();
-        CreateMap<CourseType, GetCourseTypesWithPaginationDto>();
+        // Course mappings
+        CreateMap<Course, LinguaTech.Domain.DTOs.Responses.CourseType>()
+            .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Level.ToString()))
+            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag.Name)))
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
 
-        // CourseTag mappings
-        CreateMap<CourseTag, CourseTagDto>();
-        CreateMap<CourseTag, GetCourseTagDto>();
-        CreateMap<CourseTag, GetAllCourseTagsDto>();
-        CreateMap<CourseTag, GetCourseTagsWithPaginationDto>();
+        CreateMap<CourseCategory, CourseCategoryType>();
 
-        // Course mappings with CourseType and Tags
-        CreateMap<Course, CourseDto>()
-            .ForMember(dest => dest.CourseTypeName, opt => opt.MapFrom(src => src.CourseType != null ? src.CourseType.Name : null))
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag).ToList()));
+        // Lesson mappings
+        CreateMap<Lesson, LessonType>();
 
-        CreateMap<Course, GetCourseDto>()
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.UserName : string.Empty))
-            .ForMember(dest => dest.CourseTypeName, opt => opt.MapFrom(src => src.CourseType != null ? src.CourseType.Name : null))
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag).ToList()));
+        CreateMap<Lesson, LessonWithMaterialsType>();
 
-        CreateMap<Course, GetAllCoursesDto>()
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.UserName : string.Empty))
-            .ForMember(dest => dest.CourseTypeName, opt => opt.MapFrom(src => src.CourseType != null ? src.CourseType.Name : null))
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag).ToList()));
+        // Module mappings
+        CreateMap<Entities.Module, ModuleType>();
 
-        CreateMap<Course, GetCoursesWithPaginationDto>()
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.UserName : string.Empty))
-            .ForMember(dest => dest.CourseTypeName, opt => opt.MapFrom(src => src.CourseType != null ? src.CourseType.Name : null))
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag).ToList()));
+        CreateMap<Entities.Module, ModuleWithLessonsType>();
+
+        // Material mappings
+        CreateMap<Material, MaterialType>();
+
+        // Enrollment mappings
+        CreateMap<Enrollment, EnrollmentType>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.Progress, opt => opt.MapFrom(src => src.Progress));
+
+        CreateMap<EnrollmentProgress, EnrollmentProgressType>();
     }
 
     private void ApplyMappingsFromAssembly(Assembly assembly)

@@ -85,6 +85,9 @@ app.UseHttpsRedirection();
 // Use CORS middleware
 app.UseCors();
 
+// Use request logging middleware
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 // Use JWT blacklist middleware before authentication
 app.UseMiddleware<JwtBlacklistMiddleware>();
 

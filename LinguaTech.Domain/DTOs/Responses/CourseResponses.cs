@@ -4,67 +4,83 @@ using LinguaTech.Domain.Enums;
 
 namespace LinguaTech.Domain.DTOs.Responses;
 
-public class CourseResponse
+public class CourseDetailResType
 {
+    public CourseType Data { get; set; } = new CourseType();
+    public string Message { get; set; } = string.Empty;
 }
 
-public class CourseDto : IMapFrom<Course>
+public class CourseType : IMapFrom<Course>
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
-    public string Overview { get; set; } = string.Empty;
-    public int Level { get; set; }
-    public CourseStatus Status { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string Instructor { get; set; } = string.Empty;
     public int Duration { get; set; }
-    public string? CourseTypeName { get; set; }
-    public List<CourseTagDto> Tags { get; set; } = new List<CourseTagDto>();
+    public string Level { get; set; } = string.Empty; // enum: beginner|intermediate|advanced
+    public decimal Price { get; set; }
+    public double Rating { get; set; }
+    public int StudentsCount { get; set; }
+    public CourseCategoryType Category { get; set; } = new CourseCategoryType();
+    public List<string> Tags { get; set; } = new List<string>();
+    public string Thumbnail { get; set; } = string.Empty;
+    public string? VideoUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public bool IsPublished { get; set; }
+}
+
+public class CourseCategoryType : IMapFrom<CourseCategory>
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Slug { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Icon { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
 
 public class GetCourseDto : IMapFrom<Course>
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
-    public string Overview { get; set; } = string.Empty;
-    public string ThumbnailUrl { get; set; } = string.Empty;
-    public int Level { get; set; }
-    public CourseStatus Status { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string Instructor { get; set; } = string.Empty;
     public int Duration { get; set; }
-    public int UserId { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public int? CourseTypeId { get; set; }
-    public string? CourseTypeName { get; set; }
-    public List<CourseTagDto> Tags { get; set; } = new List<CourseTagDto>();
-    public DateTime? CreatedDate { get; set; }
-    public DateTime? UpdatedDate { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
-    public string? UpdatedBy { get; set; }
+    public string Level { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public double Rating { get; set; }
+    public int StudentsCount { get; set; }
+    public CourseCategoryType Category { get; set; } = new CourseCategoryType();
+    public List<string> Tags { get; set; } = new List<string>();
+    public string Thumbnail { get; set; } = string.Empty;
+    public string? VideoUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public bool IsPublished { get; set; }
 }
 
 public class GetAllCoursesDto : IMapFrom<Course>
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
-    public string Overview { get; set; } = string.Empty;
-    public int Level { get; set; }
-    public CourseStatus Status { get; set; }
-    public int Duration { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public string? CourseTypeName { get; set; }
-    public List<CourseTagDto> Tags { get; set; } = new List<CourseTagDto>();
-    public DateTime? CreatedDate { get; set; }
+    public string Instructor { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public double Rating { get; set; }
+    public string Level { get; set; } = string.Empty;
+    public string Thumbnail { get; set; } = string.Empty;
 }
 
 public class GetCoursesWithPaginationDto : IMapFrom<Course>
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
-    public string Overview { get; set; } = string.Empty;
-    public string ThumbnailUrl { get; set; } = string.Empty;
-    public int Level { get; set; }
-    public CourseStatus Status { get; set; }
-    public int Duration { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public string? CourseTypeName { get; set; }
-    public List<CourseTagDto> Tags { get; set; } = new List<CourseTagDto>();
-    public DateTime? CreatedDate { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string Instructor { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public double Rating { get; set; }
+    public string Level { get; set; } = string.Empty;
+    public string Thumbnail { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }
