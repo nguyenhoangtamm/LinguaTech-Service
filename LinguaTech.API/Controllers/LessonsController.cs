@@ -10,28 +10,22 @@ using Microsoft.AspNetCore.Mvc;
 namespace LinguaTech.API.Controllers;
 
 [ApiController]
-public class LessonsController(ILogger<LessonsController> logger, ILessonService lessonService, IMaterialService materialService) : ApiControllerBase(logger)
+public class LessonsController(ILogger<LessonsController> logger, ILessonService lessonService, IMaterialService materialService, ISectionService sectionService) : ApiControllerBase(logger)
 {
     private readonly ILessonService _lessonService = lessonService;
     private readonly IMaterialService _materialService = materialService;
+    private readonly ISectionService _sectionService = sectionService;
 
     // GET /api/v1/lessons
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetLessons([FromQuery] GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<PaginatedResult<LessonType>>>> GetLessons([FromQuery] GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting lessons with pagination - Page: {query.PageNumber}, Limit: {query.PageSize}");
 
-            var result = await _lessonService.GetLessonsWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _lessonService.GetLessonsWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -43,20 +37,13 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // GET /api/v1/lessons/{id}
     [HttpGet("{id}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetLesson(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<LessonType>>> GetLesson(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting lesson with ID: {id}");
 
-            var result = await _lessonService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _lessonService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -68,20 +55,13 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // POST /api/v1/lessons/create
     [HttpPost("create")]
     [Authorize]
-    public async Task<IActionResult> CreateLesson([FromBody] CreateLessonRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> CreateLesson([FromBody] CreateLessonRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating lesson with title: {request.Title}");
 
-            var result = await _lessonService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _lessonService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -93,20 +73,13 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // POST /api/v1/lessons/update/{id}
     [HttpPost("update/{id}")]
     [Authorize]
-    public async Task<IActionResult> UpdateLesson([FromRoute] int id, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> UpdateLesson([FromRoute] int id, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Updating lesson with ID: {id}");
 
-            var result = await _lessonService.Update(id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _lessonService.Update(id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -118,20 +91,13 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // POST /api/v1/lessons/delete/{id}
     [HttpPost("delete/{id}")]
     [Authorize]
-    public async Task<IActionResult> DeleteLesson([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> DeleteLesson([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting lesson with ID: {id}");
 
-            var result = await _lessonService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _lessonService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -143,25 +109,43 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // POST /api/v1/lessons/complete/{id}
     [HttpPost("complete/{id}")]
     [Authorize]
-    public async Task<IActionResult> CompleteLesson(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<LessonType>>> CompleteLesson(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Completing lesson with ID: {id}");
 
-            var result = await _lessonService.CompleteLesson(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _lessonService.CompleteLesson(id, cancellationToken);
         }
         catch (Exception ex)
         {
             LogError($"Error completing lesson with ID: {id}", ex);
             return StatusCode(500, "An error occurred while completing the lesson");
+        }
+    }
+
+    // GET /api/v1/lessons/{lessonId}/sections
+    [HttpGet("{lessonId}/sections")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<SectionType>>>> GetSectionsByLesson(int lessonId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Getting all sections for lesson ID: {lessonId}");
+
+            // Check if lesson exists
+            var lessonResult = await _lessonService.GetById(lessonId, cancellationToken);
+            if (!lessonResult.Succeeded)
+            {
+                return NotFound(lessonResult);
+            }
+
+            return await _sectionService.GetByLessonId(lessonId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error getting sections for lesson ID: {lessonId}", ex);
+            return StatusCode(500, "An error occurred while retrieving sections");
         }
     }
 }

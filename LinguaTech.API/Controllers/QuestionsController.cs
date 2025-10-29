@@ -1,4 +1,5 @@
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Mvc;

@@ -33,6 +33,7 @@ public static class DatabaseSeeder
             await SeedClassesAsync(context, logger);
             await SeedEnrollmentsAsync(context, logger);
             await SeedAssignmentsAsync(context, logger);
+            await SeedSectionsAsync(context, logger);
         }
         catch (Exception ex)
         {
@@ -935,5 +936,47 @@ public static class DatabaseSeeder
         await context.Assignments.AddRangeAsync(assignments);
         await context.SaveChangesAsync();
         logger.LogInformation("Seeded {Count} assignments", assignments.Count);
+    }
+
+    private static async Task SeedSectionsAsync(ApplicationDbContext context, ILogger logger)
+    {
+        if (await context.Sections.AnyAsync())
+        {
+            logger.LogInformation("Sections already exist, skipping seeding");
+            return;
+        }
+
+        // Get lessons
+        var lessons = await context.Lessons.ToListAsync();
+        if (!lessons.Any())
+        {
+            logger.LogError("No lessons found. Cannot seed sections.");
+            return;
+        }
+
+        var sections = new List<Section>();
+
+        foreach (var lesson in lessons)
+        {
+            // Create 2-3 sections per lesson
+            var sectionCount = Random.Shared.Next(2, 4);
+            
+            for (int i = 1; i <= sectionCount; i++)
+            {
+                sections.Add(new Section
+                {
+                    Title = $"{lesson.Title} - Section {i}",
+                    Content = $"Content for section {i} of {lesson.Title}. This section covers specific topics related to the lesson.",
+                    Order = i,
+                    LessonId = lesson.Id,
+                    CreatedDate = DateTime.UtcNow,
+                    CreatedBy = "System"
+                });
+            }
+        }
+
+        await context.Sections.AddRangeAsync(sections);
+        await context.SaveChangesAsync();
+        logger.LogInformation("Seeded {Count} sections", sections.Count);
     }
 }

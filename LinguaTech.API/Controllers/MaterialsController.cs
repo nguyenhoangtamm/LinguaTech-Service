@@ -1,4 +1,5 @@
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Mvc;
@@ -9,20 +10,13 @@ public class MaterialsController(ILogger<MaterialsController> logger, IMaterialS
 {
     // GET /api/v1/lessons/{lessonId}/materials
     [HttpGet("~/api/v1/lessons/{lessonId}/materials")]
-    public async Task<IActionResult> GetMaterialsByLesson(int lessonId, [FromQuery] GetMaterialsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<List<MaterialType>>>> GetMaterialsByLesson(int lessonId, [FromQuery] GetMaterialsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting materials for lesson ID: {lessonId}");
 
-            var result = await materialService.GetByLessonId(lessonId, query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await materialService.GetByLessonId(lessonId, query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -33,20 +27,13 @@ public class MaterialsController(ILogger<MaterialsController> logger, IMaterialS
 
     // GET /api/v1/materials/{id}
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<MaterialType>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting material with ID: {id}");
 
-            var result = await materialService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await materialService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -57,20 +44,13 @@ public class MaterialsController(ILogger<MaterialsController> logger, IMaterialS
 
     // POST /api/v1/materials/create
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateMaterialRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateMaterialRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating material with filename: {request.FileName}");
 
-            var result = await materialService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await materialService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -87,14 +67,7 @@ public class MaterialsController(ILogger<MaterialsController> logger, IMaterialS
         {
             LogInformation($"Updating material with ID: {id}");
 
-            var result = await materialService.Update(id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await materialService.Update(id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -105,20 +78,13 @@ public class MaterialsController(ILogger<MaterialsController> logger, IMaterialS
 
     // POST /api/v1/materials/delete/{id}
     [HttpPost("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting material with ID: {id}");
 
-            var result = await materialService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await materialService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {

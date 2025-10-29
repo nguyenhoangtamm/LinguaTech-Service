@@ -1,4 +1,5 @@
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Mvc;
@@ -9,20 +10,13 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
 {
     // POST /api/v1/modules/create
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateModuleRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateModuleRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating module with title: {request.Title}");
 
-            var result = await moduleService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await moduleService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -39,14 +33,7 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
         {
             LogInformation($"Updating module with ID: {id}");
 
-            var result = await moduleService.Update(id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await moduleService.Update(id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -57,20 +44,13 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
 
     // POST /api/v1/modules/delete/{id}
     [HttpPost("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting module with ID: {id}");
 
-            var result = await moduleService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await moduleService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -81,20 +61,13 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
 
     // GET /api/v1/modules/{id}
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<ModuleWithLessonsType>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting module with ID: {id}");
 
-            var result = await moduleService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await moduleService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {

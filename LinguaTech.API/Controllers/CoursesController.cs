@@ -6,7 +6,7 @@ using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using CourseTypeRespone = LinguaTech.Domain.DTOs.Responses.CourseType;
 namespace LinguaTech.API.Controllers;
 
 [ApiController]
@@ -20,20 +20,14 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetCourses([FromQuery] GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<CourseTypeRespone>>> GetCourses([FromQuery] GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting courses with pagination - Page: {query.PageNumber}, Limit: {query.PageSize}");
 
-            var result = await _courseService.GetCoursesWithPagination(query, cancellationToken);
+            return await _courseService.GetCoursesWithPagination(query, cancellationToken);
 
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
         }
         catch (Exception ex)
         {
@@ -45,20 +39,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses/{id}
     [HttpGet("{id}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetCourse(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<CourseTypeRespone>>> GetCourse(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting course with ID: {id}");
 
-            var result = await _courseService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _courseService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -70,20 +57,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses/{id}/detail
     [HttpGet("{id}/detail")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetCourseDetail(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<CourseDetailType>>> GetCourseDetail(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting course detail with ID: {id}");
 
-            var result = await _courseService.GetCourseDetail(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _courseService.GetCourseDetail(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -95,20 +75,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // POST /api/v1/courses/create
     [HttpPost("create")]
     [Authorize]
-    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> CreateCourse([FromBody] CreateCourseRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating course with title: {request.Title}");
 
-            var result = await _courseService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _courseService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -120,20 +93,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // POST /api/v1/courses/update/{id}
     [HttpPost("update/{id}")]
     [Authorize]
-    public async Task<IActionResult> UpdateCourse([FromRoute] int id, [FromBody] UpdateCourseRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> UpdateCourse([FromRoute] int id, [FromBody] UpdateCourseRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Updating course with ID: {id}");
 
-            var result = await _courseService.Update(id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _courseService.Update(id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -145,20 +111,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // POST /api/v1/courses/delete/{id}
     [HttpPost("delete/{id}")]
     [Authorize]
-    public async Task<IActionResult> DeleteCourse([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> DeleteCourse([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting course with ID: {id}");
 
-            var result = await _courseService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _courseService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -170,20 +129,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses/categories
     [HttpGet("categories")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<List<CourseCategoryType>>>> GetCategories(CancellationToken cancellationToken)
     {
         try
         {
             LogInformation("Getting categories");
 
-            var result = await _courseService.GetCategories(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _courseService.GetCategories(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -195,21 +147,14 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses/category/{categorySlug}
     [HttpGet("category/{categorySlug}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetCoursesByCategory(string categorySlug, [FromQuery] GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<CourseTypeRespone>>> GetCoursesByCategory(string categorySlug, [FromQuery] GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting courses by category: {categorySlug}");
 
             query.Category = categorySlug;
-            var result = await _courseService.GetCoursesWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _courseService.GetCoursesWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -221,7 +166,7 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses/recent
     [HttpGet("recent")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetRecentCourses(CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<CourseTypeRespone>>> GetRecentCourses(CancellationToken cancellationToken)
     {
         try
         {
@@ -232,14 +177,7 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
                 SortBy = "createdAt",
                 SortOrder = "desc"
             };
-            var result = await _courseService.GetCoursesWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _courseService.GetCoursesWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -251,20 +189,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses/search
     [HttpGet("search")]
     [AllowAnonymous]
-    public async Task<IActionResult> SearchCourses([FromQuery] GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<CourseTypeRespone>>> SearchCourses([FromQuery] GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Searching courses with query");
 
-            var result = await _courseService.GetCoursesWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _courseService.GetCoursesWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -276,20 +207,13 @@ public class CoursesController(ILogger<CoursesController> logger, ICourseService
     // GET /api/v1/courses/{courseId}/modules
     [HttpGet("{courseId}/modules")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetModulesByCourse(int courseId, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<List<ModuleWithLessonsType>>>> GetModulesByCourse(int courseId, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting modules for course ID: {courseId}");
 
-            var result = await _moduleService.GetByCourseId(courseId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _moduleService.GetByCourseId(courseId, cancellationToken);
         }
         catch (Exception ex)
         {

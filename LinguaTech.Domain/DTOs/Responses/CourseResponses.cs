@@ -84,3 +84,44 @@ public class GetCoursesWithPaginationDto : IMapFrom<Course>
     public string Thumbnail { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }
+
+public class CourseDetailType
+{
+    public CourseType Course { get; set; } = new CourseType();
+    public List<ModuleWithLessonsType> Modules { get; set; } = new List<ModuleWithLessonsType>();
+    public List<MaterialType> Materials { get; set; } = new List<MaterialType>();
+    public InstructorDetailType Instructor { get; set; } = new InstructorDetailType();
+    public List<CourseReviewType> Reviews { get; set; } = new List<CourseReviewType>();
+    public List<CourseFaqType>? Faqs { get; set; }
+}
+
+public class InstructorDetailType
+{
+    public string Name { get; set; } = string.Empty;
+    public string Avatar { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Company { get; set; } = string.Empty;
+    public string Experience { get; set; } = string.Empty;
+    public int Students { get; set; }
+    public int Courses { get; set; }
+    public double Rating { get; set; }
+    public string Bio { get; set; } = string.Empty;
+}
+
+public class CourseReviewType
+{
+    public string Id { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
+    public string Avatar { get; set; } = string.Empty;
+    public double Rating { get; set; }
+    public string Comment { get; set; } = string.Empty;
+    public string Date { get; set; } = string.Empty;
+    public int? Helpful { get; set; }
+}
+
+public class CourseFaqType
+{
+    public string Id { get; set; } = string.Empty;
+    public string Question { get; set; } = string.Empty;
+    public string Answer { get; set; } = string.Empty;
+}

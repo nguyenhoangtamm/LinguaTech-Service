@@ -8,10 +8,12 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using CourseTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseType;
 using CourseCategoryTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseCategoryType;
+using CourseTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseType;
+using CourseDetailTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseDetailType;
 
 namespace LinguaTech.Application.Services;
 
@@ -225,7 +227,7 @@ public class CourseService : BaseService, ICourseService
         }
     }
 
-    public async Task<Result<PaginatedResult<CourseTypeResponse>>> GetCoursesWithPagination(GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<CourseTypeResponse>>> GetCoursesWithPagination(GetCoursesWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -286,16 +288,16 @@ public class CourseService : BaseService, ICourseService
     .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
 
             LogInformation($"Retrieved {coursesDto.TotalCount} courses with pagination successfully");
-            return Result<PaginatedResult<CourseTypeResponse>>.Success(coursesDto);
+            return coursesDto;
         }
         catch (Exception ex)
         {
             LogError("Error getting courses with pagination", ex);
-            return Result<PaginatedResult<CourseTypeResponse>>.Failure("An error occurred while retrieving courses");
+            throw new Exception("An error occurred while retrieving courses with pagination");
         }
     }
 
-    public async Task<Result<CourseDetailResType>> GetCourseDetail(int id, CancellationToken cancellationToken)
+    public async Task<Result<CourseDetailTypeResponse>> GetCourseDetail(int id, CancellationToken cancellationToken)
     {
         try
         {
@@ -307,27 +309,68 @@ public class CourseService : BaseService, ICourseService
                 .Include(c => c.Modules)
                 .ThenInclude(m => m.Lessons)
                 .Where(c => c.Id == id && !c.IsDeleted)
-                .ProjectTo<CourseTypeResponse>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (course == null)
             {
-                return Result<CourseDetailResType>.Failure("Course not found");
+                return Result<CourseDetailTypeResponse>.Failure("Course not found");
             }
 
-            var response = new CourseDetailResType
+            // Map the course to CourseTypeResponse
+            var courseDto = _mapper.Map<CourseTypeResponse>(course);
+
+            // Get modules for this course
+            var moduleRepository = _unitOfWork.Repository<Module>();
+            var modules = await moduleRepository.Entities
+                .Where(m => m.CourseId == id && !m.IsDeleted)
+                .Include(m => m.Lessons)
+                .ProjectTo<ModuleWithLessonsType>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
+
+            // Get all materials for this course by joining through lessons and modules
+            var materialRepository = _unitOfWork.Repository<Material>();
+            var materials = await materialRepository.Entities
+                .Where(m => m.Lesson!.Module!.CourseId == id && !m.IsDeleted)
+                .ProjectTo<MaterialType>(_mapper.ConfigurationProvider)
+                .ToListAsync(cancellationToken);
+
+            // Get instructor information from course (course.Instructor contains instructor ID)
+            var instructorDetail = new InstructorDetailType
             {
-                Data = course,
-                Message = "Course detail retrieved successfully"
+                Name = string.Empty,
+                Avatar = string.Empty,
+                Title = string.Empty,
+                Company = string.Empty,
+                Experience = string.Empty,
+                Students = course.StudentsCount,
+                Courses = 1,
+                Rating = course.Rating,
+                Bio = string.Empty
+            };
+
+            // Get reviews (if available in the system - for now empty list)
+            var reviews = new List<CourseReviewType>();
+
+            // Get FAQs (if available in the system - for now null)
+            List<CourseFaqType>? faqs = null;
+
+            var result = new CourseDetailTypeResponse
+            {
+                Course = courseDto,
+                Modules = modules,
+                Materials = materials,
+                Instructor = instructorDetail,
+                Reviews = reviews,
+                Faqs = faqs
             };
 
             LogInformation($"Course detail retrieved successfully with ID: {id}");
-            return Result<CourseDetailResType>.Success(response, "Course detail retrieved successfully");
+            return Result<CourseDetailTypeResponse>.Success(result, "Course detail retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError($"Error getting course detail with ID: {id}", ex);
-            return Result<CourseDetailResType>.Failure("An error occurred while retrieving course detail");
+            return Result<CourseDetailTypeResponse>.Failure("An error occurred while retrieving course detail");
         }
     }
 

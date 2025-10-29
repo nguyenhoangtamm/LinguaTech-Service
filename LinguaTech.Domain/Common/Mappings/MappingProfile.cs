@@ -60,6 +60,9 @@ public class MappingProfile : AutoMapper.Profile
 
         CreateMap<Lesson, LessonWithMaterialsType>();
 
+        // Section mappings
+        CreateMap<Section, SectionType>();
+
         // Module mappings
         CreateMap<Entities.Module, ModuleType>();
 
@@ -72,6 +75,10 @@ public class MappingProfile : AutoMapper.Profile
         CreateMap<Enrollment, EnrollmentType>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
             .ForMember(dest => dest.Progress, opt => opt.MapFrom(src => src.Progress));
+
+        CreateMap<Enrollment, UserEnrollmentType>()
+            .ForMember(dest => dest.Enrollment, opt => opt.MapFrom(src => src))
+            .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
 
         CreateMap<EnrollmentProgress, EnrollmentProgressType>();
     }

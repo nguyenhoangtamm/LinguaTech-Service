@@ -141,7 +141,7 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         catch (Exception ex)
         {
             LogError("Error getting all users", ex);
-            return StatusCode(500, "An error occurred while retrieving users");
+            return StatusCode(500, Result<List<GetAllUsersDto>>.Failure("An error occurred while retrieving users"));
         }
     }
 

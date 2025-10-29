@@ -17,6 +17,15 @@ public class SectionConfiguration : IEntityTypeConfiguration<Section>
         builder.Property(e => e.Content)
             .HasMaxLength(5000);
 
+        builder.Property(e => e.Order)
+            .IsRequired();
+
+        // Relationships
+        builder.HasOne(e => e.Lesson)
+            .WithMany(l => l.Sections)
+            .HasForeignKey(e => e.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Apply base configuration
         new BaseAuditableEntityConfiguration<Section>().Configure(builder);
     }
