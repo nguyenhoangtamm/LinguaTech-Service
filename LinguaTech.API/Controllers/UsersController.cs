@@ -7,25 +7,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
 
+[ApiController]
 public class UsersController(ILogger<UsersController> logger, IUserService userService) : ApiControllerBase(logger)
 {
     private readonly IUserService _userService = userService;
 
+    // POST /api/v1/users/create
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateUserRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateUserRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating user with username: {request.Username}");
 
-            var result = await _userService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _userService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -34,8 +30,9 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         }
     }
 
-    [HttpPost]
-    [Route("update/{id}")]
+    // POST /api/v1/users/update/{id}
+    [HttpPost("update/{id}")]
+    [Authorize]
     public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
     {
         try
@@ -58,14 +55,7 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
                 Status = request.Status
             };
 
-            var result = await _userService.Update(request.Id, updateRequest, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _userService.Update(request.Id, updateRequest, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -74,22 +64,16 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         }
     }
 
-    [HttpPost]
-    [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    // POST /api/v1/users/delete/{id}
+    [HttpPost("delete/{id}")]
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting user with ID: {id}");
 
-            var result = await _userService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _userService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -98,21 +82,16 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         }
     }
 
+    // GET /api/v1/users/{id}
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<GetUserDto>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting user with ID: {id}");
 
-            var result = await _userService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _userService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -121,45 +100,34 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         }
     }
 
-    [HttpGet]
-    [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    // GET /api/v1/users/get-all
+    [HttpGet("get-all")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<GetAllUsersDto>>>> GetAll(CancellationToken cancellationToken = default)
     {
         try
         {
-            LogInformation($"Getting all users");
+            LogInformation("Getting all users");
 
-            var result = await _userService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _userService.GetAll(cancellationToken);
         }
         catch (Exception ex)
         {
             LogError("Error getting all users", ex);
-            return StatusCode(500, Result<List<GetAllUsersDto>>.Failure("An error occurred while retrieving users"));
+            return StatusCode(500, "An error occurred while retrieving users");
         }
     }
 
+    // GET /api/v1/users/get-pagination
     [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetUsersWithPagination([FromQuery] GetUsersWithPaginationQuery query, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<PaginatedResult<GetUsersWithPaginationDto>>>> GetUsersWithPagination([FromQuery] GetUsersWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting users with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var result = await _userService.GetUsersWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _userService.GetUsersWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -168,6 +136,7 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         }
     }
 
+    // GET /api/v1/users/me
     [HttpGet("me")]
     [Authorize]
     public async Task<ActionResult<Result<GetUserDto>>> GetMe(CancellationToken cancellationToken = default)
@@ -176,39 +145,25 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
         {
             LogInformation("Getting current user information");
 
-            var result = await _userService.GetMe(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _userService.GetMe(cancellationToken);
         }
         catch (Exception ex)
         {
             LogError("Error getting current user information", ex);
-            return StatusCode(500, Result<GetUserDto>.Failure("An error occurred while retrieving current user information"));
+            return StatusCode(500, "An error occurred while retrieving current user information");
         }
     }
 
     // GET /api/v1/users/dashboard-stats
     [HttpGet("dashboard-stats")]
     [Authorize]
-    public async Task<IActionResult> GetDashboardStats(CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<UserDashboardStatsResType>>> GetDashboardStats(CancellationToken cancellationToken)
     {
         try
         {
             LogInformation("Getting user dashboard stats");
 
-            var result = await _userService.GetDashboardStats(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _userService.GetDashboardStats(cancellationToken);
         }
         catch (Exception ex)
         {

@@ -325,40 +325,175 @@ public class UserService : BaseService, IUserService
 
             var enrollmentRepository = _unitOfWork.Repository<Enrollment>();
             var courseRepository = _unitOfWork.Repository<Course>();
+            var submissionRepository = _unitOfWork.Repository<Submission>();
 
-            // Get user enrollments count
-            var totalEnrollments = await enrollmentRepository.Entities
-                .CountAsync(e => e.UserId == userIdInt && !e.IsDeleted, cancellationToken);
+            // Get user enrollments
+            var userEnrollments = await enrollmentRepository.Entities
+                .Where(e => e.UserId == userIdInt && !e.IsDeleted)
+                .ToListAsync(cancellationToken);
 
             // Get completed courses count
-            var completedCourses = await enrollmentRepository.Entities
-                .CountAsync(e => e.UserId == userIdInt && e.Status == EnrollmentStatus.Completed && !e.IsDeleted, cancellationToken);
+            var completedCourses = userEnrollments
+                .Count(e => e.Status == EnrollmentStatus.Completed);
 
-            // Get total available courses count
-            var totalCourses = await courseRepository.Entities
-                .CountAsync(c => c.IsPublished && !c.IsDeleted, cancellationToken);
+            // Get in-progress courses count
+            var inProgressCourses = userEnrollments
+                .Count(e => e.Status == EnrollmentStatus.Active);
 
-            var dashboardStats = new UserDashboardStatsResType
+            // Get total user courses (enrolled)
+            var totalCourses = userEnrollments.Count;
+
+            // Calculate total study hours from submissions
+            var userSubmissions = await submissionRepository.Entities
+                .Where(s => s.UserId == userIdInt && !s.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            var totalStudyHours = userSubmissions.Count > 0
+                ? (int)userSubmissions.Sum(s => (s.UpdatedDate.HasValue && s.CreatedDate.HasValue)
+                    ? (s.UpdatedDate.Value - s.CreatedDate.Value).TotalHours
+                    : 0)
+                : 0;
+
+            // Calculate streak (days of consecutive completions)
+            var streak = CalculateStreak(userSubmissions);
+
+            // Get achievements (for now, populate based on milestones)
+            var achievements = await GetUserAchievements(userIdInt, completedCourses, totalStudyHours, streak, cancellationToken);
+
+            var stats = new UserDashboardStatsResType
             {
-                Data = new UserDashboardStatsData
-                {
-                    TotalCourses = totalCourses,
-                    CompletedCourses = completedCourses,
-                    InProgressCourses = totalEnrollments - completedCourses,
-                    TotalStudyHours = 0, // Placeholder - would need actual calculation
-                    Streak = 0, // Placeholder - would need actual calculation
-                    Achievements = new List<AchievementType>() // Placeholder
-                },
-                Message = "Dashboard statistics retrieved successfully"
+                TotalCourses = totalCourses,
+                CompletedCourses = completedCourses,
+                InProgressCourses = inProgressCourses,
+                TotalStudyHours = totalStudyHours,
+                Streak = streak,
+                Achievements = achievements
             };
 
-            LogInformation("Dashboard statistics retrieved successfully");
-            return Result<UserDashboardStatsResType>.Success(dashboardStats, "Dashboard statistics retrieved successfully");
+            LogInformation($"User dashboard statistics retrieved successfully. User ID: {userIdInt}");
+            return Result<UserDashboardStatsResType>.Success(stats, "Dashboard statistics retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError("Error getting dashboard statistics", ex);
             return Result<UserDashboardStatsResType>.Failure("An error occurred while retrieving dashboard statistics");
         }
+    }
+
+    private int CalculateStreak(List<Submission> submissions)
+    {
+        if (submissions.Count == 0)
+            return 0;
+
+        var submissionDates = submissions
+            .Where(s => s.CreatedDate.HasValue)
+            .Select(s => s.CreatedDate!.Value.Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToList();
+
+        if (submissionDates.Count == 0)
+            return 0;
+
+        int streak = 1;
+        var today = DateTime.UtcNow.Date;
+        var currentDate = submissionDates[0];
+
+        // Check if there's activity today or yesterday to start streak
+        if ((today - currentDate).TotalDays > 1)
+            return 0;
+
+        for (int i = 1; i < submissionDates.Count; i++)
+        {
+            var daysDifference = (currentDate - submissionDates[i]).TotalDays;
+            if (daysDifference == 1)
+            {
+                streak++;
+                currentDate = submissionDates[i];
+            }
+            else if (daysDifference > 1)
+            {
+                break;
+            }
+        }
+
+        return streak;
+    }
+
+    private async Task<List<AchievementType>> GetUserAchievements(int userId, int completedCourses, int totalStudyHours, int streak, CancellationToken cancellationToken)
+    {
+        var achievements = new List<AchievementType>();
+
+        // Achievement 1: First Course Completion
+        if (completedCourses >= 1)
+        {
+            achievements.Add(new AchievementType
+            {
+                Id = "achievement_001",
+                Title = "First Steps",
+                Description = "Complete your first course",
+                Icon = "🎓",
+                UnlockedAt = DateTime.UtcNow,
+                Type = "course_completion"
+            });
+        }
+
+        // Achievement 2: Course Master (5 courses completed)
+        if (completedCourses >= 5)
+        {
+            achievements.Add(new AchievementType
+            {
+                Id = "achievement_002",
+                Title = "Course Master",
+                Description = "Complete 5 courses",
+                Icon = "🏆",
+                UnlockedAt = DateTime.UtcNow,
+                Type = "course_completion"
+            });
+        }
+
+        // Achievement 3: Dedication (7-day streak)
+        if (streak >= 7)
+        {
+            achievements.Add(new AchievementType
+            {
+                Id = "achievement_003",
+                Title = "Dedicated Learner",
+                Description = "Maintain a 7-day learning streak",
+                Icon = "🔥",
+                UnlockedAt = DateTime.UtcNow,
+                Type = "streak"
+            });
+        }
+
+        // Achievement 4: Study Marathon (50+ hours)
+        if (totalStudyHours >= 50)
+        {
+            achievements.Add(new AchievementType
+            {
+                Id = "achievement_004",
+                Title = "Study Marathon",
+                Description = "Study for 50+ hours",
+                Icon = "⏱️",
+                UnlockedAt = DateTime.UtcNow,
+                Type = "study_hours"
+            });
+        }
+
+        // Achievement 5: Expert (100+ hours)
+        if (totalStudyHours >= 100)
+        {
+            achievements.Add(new AchievementType
+            {
+                Id = "achievement_005",
+                Title = "Expert",
+                Description = "Study for 100+ hours",
+                Icon = "👑",
+                UnlockedAt = DateTime.UtcNow,
+                Type = "study_hours"
+            });
+        }
+
+        return achievements;
     }
 }

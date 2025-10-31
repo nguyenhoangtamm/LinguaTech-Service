@@ -12,12 +12,12 @@ public class CourseDetailResType
 
 public class CourseType : IMapFrom<Course>
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Instructor { get; set; } = string.Empty;
     public int Duration { get; set; }
-    public string Level { get; set; } = string.Empty; // enum: beginner|intermediate|advanced
+    public int Level { get; set; } // enum: 1|2|3 (beginner|intermediate|advanced)
     public decimal Price { get; set; }
     public double Rating { get; set; }
     public int StudentsCount { get; set; }
@@ -32,7 +32,7 @@ public class CourseType : IMapFrom<Course>
 
 public class CourseCategoryType : IMapFrom<CourseCategory>
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string? Description { get; set; }

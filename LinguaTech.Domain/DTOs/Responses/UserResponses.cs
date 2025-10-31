@@ -61,8 +61,12 @@ public class GetUsersWithPaginationDto : IMapFrom<User>
 
 public class UserDashboardStatsResType
 {
-    public UserDashboardStatsData Data { get; set; } = new UserDashboardStatsData();
-    public string Message { get; set; } = string.Empty;
+    public int TotalCourses { get; set; }
+    public int CompletedCourses { get; set; }
+    public int InProgressCourses { get; set; }
+    public int TotalStudyHours { get; set; }
+    public int Streak { get; set; }
+    public List<AchievementType> Achievements { get; set; } = new List<AchievementType>();
 }
 
 public class UserDashboardStatsData
@@ -77,7 +81,7 @@ public class UserDashboardStatsData
 
 public class AchievementType
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;

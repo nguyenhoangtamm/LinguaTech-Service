@@ -49,11 +49,13 @@ public class MappingProfile : AutoMapper.Profile
 
         // Course mappings
         CreateMap<Course, LinguaTech.Domain.DTOs.Responses.CourseType>()
-            .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Level.ToString()))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Level))
             .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag.Name)))
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
 
-        CreateMap<CourseCategory, CourseCategoryType>();
+        CreateMap<CourseCategory, CourseCategoryType>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString())); // Updated mapping to convert Id to string
 
         // Lesson mappings
         CreateMap<Lesson, LessonType>();
@@ -73,14 +75,19 @@ public class MappingProfile : AutoMapper.Profile
 
         // Enrollment mappings
         CreateMap<Enrollment, EnrollmentType>()
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
+            .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId.ToString()))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString().ToLower()))
             .ForMember(dest => dest.Progress, opt => opt.MapFrom(src => src.Progress));
 
         CreateMap<Enrollment, UserEnrollmentType>()
             .ForMember(dest => dest.Enrollment, opt => opt.MapFrom(src => src))
             .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
 
-        CreateMap<EnrollmentProgress, EnrollmentProgressType>();
+        CreateMap<EnrollmentProgress, EnrollmentProgressType>()
+            .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId.ToString()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()));
     }
 
     private void ApplyMappingsFromAssembly(Assembly assembly)

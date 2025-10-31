@@ -12,30 +12,24 @@ public class EnrollmentResType
 
 public class EnrollmentType : IMapFrom<Enrollment>
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public int CourseId { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
+    public string CourseId { get; set; } = string.Empty;
     public DateTime EnrolledAt { get; set; }
     public string Status { get; set; } = string.Empty; // enum: active|completed|paused|cancelled
-    public EnrollmentProgressType Progress { get; set; } = new EnrollmentProgressType();
+    public EnrollmentProgressType? Progress { get; set; }
 }
 
 public class EnrollmentProgressType : IMapFrom<EnrollmentProgress>
 {
-    public int CourseId { get; set; }
-    public int UserId { get; set; }
+    public string CourseId { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     public int CompletedLessons { get; set; }
     public int TotalLessons { get; set; }
     public double ProgressPercentage { get; set; }
-    public DateTime LastAccessedAt { get; set; }
-    public DateTime StartedAt { get; set; }
+    public DateTime? LastAccessedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
-}
-
-public class UserEnrollmentsResType
-{
-    public List<UserEnrollmentType> Data { get; set; } = new List<UserEnrollmentType>();
-    public string Message { get; set; } = string.Empty;
 }
 
 public class UserEnrollmentType

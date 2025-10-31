@@ -35,7 +35,7 @@ public class EnrollmentsController(ILogger<EnrollmentsController> logger, IEnrol
     // GET /api/v1/enrollments/my-courses
     [HttpGet("my-courses")]
     [Authorize]
-    public async Task<ActionResult<Result<UserEnrollmentsResType>>> GetUserEnrollments(CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<List<UserEnrollmentType>>>> GetUserEnrollments(CancellationToken cancellationToken)
     {
         try
         {
@@ -89,7 +89,7 @@ public class EnrollmentsController(ILogger<EnrollmentsController> logger, IEnrol
     // GET /api/v1/enrollments/continue
     [HttpGet("continue")]
     [Authorize]
-    public async Task<ActionResult<Result<UserEnrollmentsResType>>> GetContinueCourses(CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<List<UserEnrollmentType>>>> GetContinueCourses(CancellationToken cancellationToken)
     {
         try
         {
