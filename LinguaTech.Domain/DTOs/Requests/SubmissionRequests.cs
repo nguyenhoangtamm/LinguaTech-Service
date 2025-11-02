@@ -5,8 +5,9 @@ public class CreateSubmissionRequest
     public int AssignmentId { get; set; }
     public int UserId { get; set; }
     public string FileUrl { get; set; } = string.Empty;
-    public double Score { get; set; }
+    public double? Score { get; set; }
     public string Feedback { get; set; } = string.Empty;
+    public int Status { get; set; } = 0; // 0 = Draft, 1 = Submitted, 2 = Graded
 }
 
 public class UpdateSubmissionRequest
@@ -15,8 +16,9 @@ public class UpdateSubmissionRequest
     public int AssignmentId { get; set; }
     public int UserId { get; set; }
     public string FileUrl { get; set; } = string.Empty;
-    public double Score { get; set; }
+    public double? Score { get; set; }
     public string Feedback { get; set; } = string.Empty;
+    public int Status { get; set; }
 }
 
 public class GetSubmissionsWithPaginationQuery

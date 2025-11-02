@@ -90,7 +90,7 @@ public class AssignmentsController(ILogger<AssignmentsController> logger, IAssig
         {
             LogInformation($"Getting assignment with ID: {id}");
 
-            var result = await assignmentService.GetById(id, cancellationToken);
+            var result = await assignmentService.GetAssignmentWithQuestionsById(id, cancellationToken);
 
             if (result.Succeeded)
             {

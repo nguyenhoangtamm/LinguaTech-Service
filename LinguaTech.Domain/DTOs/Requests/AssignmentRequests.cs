@@ -29,3 +29,22 @@ public record GetAssignmentsWithPaginationQuery
     public double? MinScore { get; set; }
     public double? MaxScore { get; set; }
 }
+
+// New DTOs for Submit Assignment
+public class AnswerOptionRequest
+{
+  public int QuestionId { get; set; }
+    public string? Answer { get; set; }
+    public int? SelectedOptionId { get; set; }
+}
+
+public class SubmitAssignmentRequest
+{
+    public List<AnswerOptionRequest> Answers { get; set; } = new List<AnswerOptionRequest>();
+}
+
+// New DTO for Save Draft
+public class SaveDraftRequest
+{
+    public List<AnswerOptionRequest> Answers { get; set; } = new List<AnswerOptionRequest>();
+}

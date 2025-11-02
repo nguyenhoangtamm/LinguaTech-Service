@@ -88,6 +88,41 @@ public class MappingProfile : AutoMapper.Profile
         CreateMap<EnrollmentProgress, EnrollmentProgressType>()
             .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId.ToString()))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()));
+
+        // Submission mappings
+        CreateMap<Submission, SubmissionResponse>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.AssignmentId, opt => opt.MapFrom(src => src.AssignmentId.ToString()))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId.ToString()))
+            .ForMember(dest => dest.SubmittedAt, opt => opt.MapFrom(src => src.SubmittedAt.HasValue ? src.SubmittedAt.Value.ToString("O") : null))
+            .ForMember(dest => dest.GradedAt, opt => opt.MapFrom(src => src.GradedAt.HasValue ? src.GradedAt.Value.ToString("O") : null))
+            .ForMember(dest => dest.Answers, opt => opt.MapFrom(src => src.Answers));
+
+        CreateMap<Answer, AnswerResponse>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.QuestionId.ToString()))
+            .ForMember(dest => dest.Answer, opt => opt.MapFrom(src => src.AnswerText))
+            .ForMember(dest => dest.SelectedOptionId, opt => opt.MapFrom(src => src.SelectedOptionId.HasValue ? src.SelectedOptionId.Value.ToString() : null));
+
+        // Question and QuestionOption mappings for assignment details
+        CreateMap<QuestionOption, QuestionOptionDto>()
+            .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.OptionText))
+            .ForMember(dest => dest.IsCorrect, opt => opt.MapFrom(src => src.IsCorrect));
+
+        CreateMap<Question, QuestionDetailDto>()
+            .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content))
+            .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Score))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedDate))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedDate))
+            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => src.IsDeleted))
+            .ForMember(dest => dest.AssignmentId, opt => opt.MapFrom(src => src.AssignmentId))
+            .ForMember(dest => dest.QuestionType, opt => opt.MapFrom(src => src.QuestionType != null ? src.QuestionType.Name : "Unknown"))
+            .ForMember(dest => dest.Instructions, opt => opt.MapFrom(src => (string)null))
+            .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.QuestionOptions.Where(qo => !qo.IsDeleted).ToList()));
+
+        // Assignment mapping with questions
+        CreateMap<Assignment, GetAssignmentDto>()
+            .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Questions.Where(q => !q.IsDeleted).ToList()));
     }
 
     private void ApplyMappingsFromAssembly(Assembly assembly)

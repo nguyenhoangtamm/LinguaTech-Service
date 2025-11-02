@@ -186,7 +186,7 @@ public class AssignmentService : BaseService, IAssignmentService
             await _unitOfWork.Save(cancellationToken);
 
             LogInformation($"Assignment deleted successfully with ID: {assignment.Id}");
-            return Result<int>.Success(assignment.Id, "Assignment deleted successfully");
+            return Result<int>. Success(assignment.Id, "Assignment deleted successfully");
         }
         catch (Exception ex)
         {
@@ -221,6 +221,42 @@ public class AssignmentService : BaseService, IAssignmentService
         catch (Exception ex)
         {
             LogError($"Error getting assignment with ID: {id}", ex);
+            return Result<GetAssignmentDto>.Failure("An error occurred while retrieving the assignment");
+        }
+    }
+
+    public async Task<Result<GetAssignmentDto>> GetAssignmentWithQuestionsById(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Getting assignment with questions for ID: {id}");
+
+            var assignmentRepository = _unitOfWork.Repository<Assignment>();
+            var assignment = await assignmentRepository.Entities
+                .Include(a => a.Lesson)
+                .ThenInclude(l => l.Module)
+                .ThenInclude(m => m.Course)
+                .Include(a => a.Questions)
+                .ThenInclude(q => q.QuestionOptions)
+                .Include(a => a.Questions)
+                .ThenInclude(q => q.QuestionType)
+                .Where(a => a.Id == id && !a.IsDeleted)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (assignment == null)
+            {
+                return Result<GetAssignmentDto>.Failure("Assignment not found");
+            }
+
+            // Use AutoMapper to map the complete assignment with questions
+            var dto = _mapper.Map<GetAssignmentDto>(assignment);
+
+            LogInformation($"Assignment with questions retrieved successfully with ID: {id}");
+            return Result<GetAssignmentDto>.Success(dto, "Assignment retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error getting assignment with questions for ID: {id}", ex);
             return Result<GetAssignmentDto>.Failure("An error occurred while retrieving the assignment");
         }
     }

@@ -51,40 +51,50 @@ public abstract class BaseService
         }
     }
 
-    protected string? UserEmail
+  protected string? UserEmail
     {
         get
         {
-            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
-        }
+    return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+      }
     }
 
     protected List<string> Roles
     {
-        get
+      get
         {
-            try
+          try
             {
-                // L?y t? JWT claims tr??c
-                var roles = _httpContextAccessor.HttpContext?.User?.FindAll(ClaimTypes.Role)?
-                    .Select(c => c.Value).ToList();
-                if (roles != null && roles.Any())
-                    return roles;
-                    
-                // Fallback v? Items n?u có
-                return _httpContextAccessor.HttpContext?.Items["Roles"] as List<string> ?? new List<string>();
+ // L?y t? JWT claims tr??c
+ var roles = _httpContextAccessor.HttpContext?.User?.FindAll(ClaimTypes.Role)?
+         .Select(c => c.Value).ToList();
+           if (roles != null && roles.Any())
+     return roles;
+          
+        // Fallback v? Items n?u có
+             return _httpContextAccessor.HttpContext?.Items["Roles"] as List<string> ?? new List<string>();
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                return new List<string>();
+       catch (Exception e)
+      {
+     _logger.LogError(e, e.Message);
+    return new List<string>();
             }
         }
     }
 
-    protected void LogInformation(string message)
+    protected int GetCurrentUserId()
     {
-        _logger.LogInformation(message);
+        var userIdString = UserId;
+        if (int.TryParse(userIdString, out var userId))
+        {
+  return userId;
+}
+        return 0;
+    }
+
+    protected void LogInformation(string message)
+ {
+   _logger.LogInformation(message);
     }
 
     protected void LogError(string message, Exception ex)

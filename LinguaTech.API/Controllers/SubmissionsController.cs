@@ -198,4 +198,74 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
             return StatusCode(500, "An error occurred while retrieving submissions");
         }
     }
+
+    // New endpoints for assignment submission
+    [HttpGet("current-user-submission/{assignmentId}")]
+    public async Task<IActionResult> GetCurrentUserSubmission(int assignmentId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            LogInformation($"Getting current user submission for assignment ID: {assignmentId}");
+
+            var result = await submissionService.GetCurrentUserSubmissionByAssignmentId(assignmentId, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return NotFound(result);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error getting current user submission for assignment ID: {assignmentId}", ex);
+            return StatusCode(500, "An error occurred while retrieving the submission");
+        }
+    }
+
+    [HttpPost("{assignmentId}/submit")]
+    public async Task<IActionResult> SubmitAssignment([FromRoute] int assignmentId, [FromBody] SubmitAssignmentRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Submitting assignment ID: {assignmentId}");
+
+            var result = await submissionService.SubmitAssignment(assignmentId, request, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error submitting assignment ID: {assignmentId}", ex);
+            return StatusCode(500, "An error occurred while submitting the assignment");
+        }
+    }
+
+    [HttpPut("{assignmentId}/draft")]
+    public async Task<IActionResult> SaveDraft([FromRoute] int assignmentId, [FromBody] SaveDraftRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Saving draft for assignment ID: {assignmentId}");
+
+            var result = await submissionService.SaveDraftAnswers(assignmentId, request, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error saving draft for assignment ID: {assignmentId}", ex);
+            return StatusCode(500, "An error occurred while saving draft");
+        }
+    }
 }

@@ -13,4 +13,5 @@ public interface IAssignmentService
     Task<Result<List<GetAllAssignmentsDto>>> GetAll(CancellationToken cancellationToken);
     Task<Result<PaginatedResult<GetAssignmentsWithPaginationDto>>> GetAssignmentsWithPagination(GetAssignmentsWithPaginationQuery query, CancellationToken cancellationToken);
     Task<Result<List<GetAllAssignmentsDto>>> GetByLessonId(int lessonId, CancellationToken cancellationToken);
+    Task<Result<GetAssignmentDto>> GetAssignmentWithQuestionsById(int id, CancellationToken cancellationToken);
 }
