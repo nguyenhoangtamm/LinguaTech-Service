@@ -9,6 +9,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ProfileEntity = LinguaTech.Domain.Entities.Profile;
@@ -252,7 +253,7 @@ public class UserService : BaseService, IUserService
         }
     }
 
-    public async Task<Result<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination(GetUsersWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination(GetUsersWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -266,12 +267,12 @@ public class UserService : BaseService, IUserService
             var result = PaginatedResult<GetUsersWithPaginationDto>.Create(usersDto, totalCount, query.PageNumber, query.PageSize);
 
             LogInformation($"Retrieved {users.Count} users successfully for page {query.PageNumber}");
-            return Result<PaginatedResult<GetUsersWithPaginationDto>>.Success(result);
+            return (result);
         }
         catch (Exception ex)
         {
             LogError("Error getting users with pagination", ex);
-            return Result<PaginatedResult<GetUsersWithPaginationDto>>.Failure("An error occurred while retrieving users");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 

@@ -1,0 +1,650 @@
+{
+  "apis": [
+    {
+      "controller": "AssignmentsController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/assignments/create",
+          "payload": "CreateAssignmentRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/assignments/update/{id}",
+          "payload": "UpdateAssignmentRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/assignments/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/assignments/{id}",
+          "payload": null,
+          "response": "Result<GetAssignmentDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/assignments/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllAssignmentsDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/assignments/get-pagination",
+          "payload": "GetAssignmentsWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetAssignmentsWithPaginationDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/assignments/lesson/{lessonId}",
+          "payload": null,
+          "response": "Result<List<GetAllAssignmentsDto>>"
+        }
+      ]
+    },
+    {
+      "controller": "QuestionsController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/questions/create",
+          "payload": "CreateQuestionRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/questions/update/{id}",
+          "payload": "UpdateQuestionRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/questions/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/questions/{id}",
+          "payload": null,
+          "response": "Result<GetQuestionDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/questions/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllQuestionsDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/questions/get-pagination",
+          "payload": "GetQuestionsWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetQuestionsWithPaginationDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/questions/assignment/{assignmentId}",
+          "payload": null,
+          "response": "Result<List<GetAllQuestionsDto>>"
+        }
+      ]
+    },
+    {
+      "controller": "RolesController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/roles/create",
+          "payload": "CreateRoleRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/roles/update/{id}",
+          "payload": "UpdateRoleRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/roles/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/roles/{id}",
+          "payload": null,
+          "response": "Result<GetRoleDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/roles/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllRolesDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/roles/get-pagination",
+          "payload": "GetRolesWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetRolesWithPaginationDto>>"
+        }
+      ]
+    },
+    {
+      "controller": "SubmissionsController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/submissions/create",
+          "payload": "CreateSubmissionRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/submissions/update/{id}",
+          "payload": "UpdateSubmissionRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/submissions/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/submissions/{id}",
+          "payload": null,
+          "response": "Result<GetSubmissionDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/submissions/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllSubmissionsDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/submissions/by-assignment/{assignmentId}",
+          "payload": null,
+          "response": "Result<List<GetAllSubmissionsDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/submissions/by-user/{userId}",
+          "payload": null,
+          "response": "Result<List<GetAllSubmissionsDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/submissions/get-pagination",
+          "payload": "GetSubmissionsWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetSubmissionsWithPaginationDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/submissions/current-user-submission/{assignmentId}",
+          "payload": null,
+          "response": "Result<GetSubmissionDto>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/submissions/{assignmentId}/submit",
+          "payload": "SubmitAssignmentRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "PUT",
+          "endpoint": "/api/v1/submissions/{assignmentId}/draft",
+          "payload": "SaveDraftRequest",
+          "response": "Result<int>"
+        }
+      ]
+    },
+    {
+      "controller": "UsersController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/users/create",
+          "payload": "CreateUserRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/users/update/{id}",
+          "payload": "UpdateUserRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/users/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/users/{id}",
+          "payload": null,
+          "response": "Result<GetUserDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/users/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllUsersDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/users/get-pagination",
+          "payload": "GetUsersWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetUsersWithPaginationDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/users/me",
+          "payload": null,
+          "response": "Result<GetUserDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/users/dashboard-stats",
+          "payload": null,
+          "response": "Result<UserDashboardStatsResType>"
+        }
+      ]
+    },
+    {
+      "controller": "EnrollmentsController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/enrollments/create",
+          "payload": "CreateEnrollmentRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/enrollments/my-courses",
+          "payload": null,
+          "response": "Result<List<UserEnrollmentType>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/enrollments/check/{courseId}",
+          "payload": null,
+          "response": "Result<CheckEnrollmentResType>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/enrollments/update-progress/{courseId}",
+          "payload": "UpdateProgressRequest",
+          "response": "Result<UpdateProgressResType>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/enrollments/continue",
+          "payload": null,
+          "response": "Result<List<UserEnrollmentType>>"
+        }
+      ]
+    },
+    {
+      "controller": "SectionsController",
+      "endpoints": [
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/sections",
+          "payload": "GetSectionsWithPaginationQuery",
+          "response": "Result<PaginatedResult<SectionType>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/sections/{id}",
+          "payload": null,
+          "response": "Result<SectionType>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/sections/create",
+          "payload": "CreateSectionRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/sections/update/{id}",
+          "payload": "UpdateSectionRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/sections/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        }
+      ]
+    },
+    {
+      "controller": "CoursesController",
+      "endpoints": [
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses",
+          "payload": "GetCoursesWithPaginationQuery",
+          "response": "PaginatedResult<CourseType>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses/{id}",
+          "payload": null,
+          "response": "Result<CourseType>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses/{id}/detail",
+          "payload": null,
+          "response": "Result<CourseDetailType>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/courses/create",
+          "payload": "CreateCourseRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/courses/update/{id}",
+          "payload": "UpdateCourseRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/courses/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses/categories",
+          "payload": null,
+          "response": "Result<List<CourseCategoryType>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses/category/{categorySlug}",
+          "payload": "GetCoursesWithPaginationQuery",
+          "response": "PaginatedResult<CourseType>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses/recent",
+          "payload": null,
+          "response": "PaginatedResult<CourseType>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses/search",
+          "payload": "GetCoursesWithPaginationQuery",
+          "response": "PaginatedResult<CourseType>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/courses/{courseId}/modules",
+          "payload": null,
+          "response": "Result<List<ModuleWithLessonsType>>"
+        }
+      ]
+    },
+    {
+      "controller": "ClassesController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/classes/create",
+          "payload": "CreateClassRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/classes/update/{id}",
+          "payload": "UpdateClassRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/classes/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/classes/{id}",
+          "payload": null,
+          "response": "Result<GetClassDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/classes/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllClassesDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/classes/by-course/{courseId}",
+          "payload": null,
+          "response": "Result<List<GetAllClassesDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/classes/get-pagination",
+          "payload": "GetClassesWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetClassesWithPaginationDto>>"
+        }
+      ]
+    },
+    {
+      "controller": "ModulesController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/modules/create",
+          "payload": "CreateModuleRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/modules/update/{id}",
+          "payload": "UpdateModuleRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/modules/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/modules/{id}",
+          "payload": null,
+          "response": "Result<ModuleWithLessonsType>"
+        }
+      ]
+    },
+    {
+      "controller": "CourseTypesController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/coursetypes/create",
+          "payload": "CreateCourseTypeRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/coursetypes/update/{id}",
+          "payload": "UpdateCourseTypeRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/coursetypes/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/coursetypes/{id}",
+          "payload": null,
+          "response": "Result<GetCourseTypeDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/coursetypes/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllCourseTypesDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/coursetypes/get-pagination",
+          "payload": "GetCourseTypesWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetCourseTypesWithPaginationDto>>"
+        }
+      ]
+    },
+    {
+      "controller": "CourseTagsController",
+      "endpoints": [
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/coursetags/create",
+          "payload": "CreateCourseTagRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/coursetags/update/{id}",
+          "payload": "UpdateCourseTagRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/coursetags/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/coursetags/{id}",
+          "payload": null,
+          "response": "Result<GetCourseTagDto>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/coursetags/get-all",
+          "payload": null,
+          "response": "Result<List<GetAllCourseTagsDto>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/coursetags/get-pagination",
+          "payload": "GetCourseTagsWithPaginationQuery",
+          "response": "Result<PaginatedResult<GetCourseTagsWithPaginationDto>>"
+        }
+      ]
+    },
+    {
+      "controller": "MaterialsController",
+      "endpoints": [
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/lessons/{lessonId}/materials",
+          "payload": "GetMaterialsWithPaginationQuery",
+          "response": "Result<List<MaterialType>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/materials/{id}",
+          "payload": null,
+          "response": "Result<MaterialType>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/materials/create",
+          "payload": "CreateMaterialRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/materials/update/{id}",
+          "payload": "UpdateMaterialRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/materials/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/materials/{id}/download",
+          "payload": null,
+          "response": "File"
+        }
+      ]
+    },
+    {
+      "controller": "LessonsController",
+      "endpoints": [
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/lessons",
+          "payload": "GetLessonsWithPaginationQuery",
+          "response": "Result<PaginatedResult<LessonType>>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/lessons/{id}",
+          "payload": null,
+          "response": "Result<LessonType>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/lessons/create",
+          "payload": "CreateLessonRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/lessons/update/{id}",
+          "payload": "UpdateLessonRequest",
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/lessons/delete/{id}",
+          "payload": null,
+          "response": "Result<int>"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/api/v1/lessons/complete/{id}",
+          "payload": null,
+          "response": "Result<LessonType>"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/lessons/{lessonId}/sections",
+          "payload": null,
+          "response": "Result<List<SectionType>>"
+        }
+      ]
+    }
+  ]
+}

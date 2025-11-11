@@ -56,6 +56,8 @@ public class GetUsersWithPaginationDto : IMapFrom<User>
     public string RoleName { get; set; } = string.Empty;
     public string Fullname { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public int Code { get; set; }
+
     public DateTime? CreatedDate { get; set; }
 }
 

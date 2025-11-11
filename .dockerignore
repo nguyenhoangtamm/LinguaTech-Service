@@ -1,0 +1,16 @@
+# Docker ignore for repository root build context
+**/bin/
+**/obj/
+.vs/
+*.suo
+*.user
+*.log
+.git/
+
+# Editor folders
+node_modules/
+
+# Publish output
+/app/publish
+
+# Keep Dockerfile in the root - do NOT ignore it here

@@ -64,7 +64,7 @@ public static class DatabaseSeeder
                 }
                 else
                 {
-                    logger.LogError("Failed to create role: {RoleName}. Errors: {Errors}", 
+                    logger.LogError("Failed to create role: {RoleName}. Errors: {Errors}",
                         role.Name, string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
@@ -128,7 +128,7 @@ public static class DatabaseSeeder
             }
             else
             {
-                logger.LogError("Failed to create admin user. Errors: {Errors}", 
+                logger.LogError("Failed to create admin user. Errors: {Errors}",
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
         }
@@ -175,7 +175,7 @@ public static class DatabaseSeeder
             }
             else
             {
-                logger.LogError("Failed to create regular user. Errors: {Errors}", 
+                logger.LogError("Failed to create regular user. Errors: {Errors}",
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
         }
@@ -193,32 +193,32 @@ public static class DatabaseSeeder
         var menus = new List<Menu>
         {
             // Main navigation menus
-            new Menu { Name = "Dashboard", Path = "/dashboard", Icon = "dashboard", Order = 1 },
+            new Menu { Name = "Dashboard", Path = "manage/dashboard", Icon = "dashboard", Order = 1 },
             
             // User Management (Admin only)
-            new Menu { Name = "User Management", Path = "/users", Icon = "people", Order = 2 },
-            new Menu { Name = "Role Management", Path = "/roles", Icon = "admin_panel_settings", Order = 3 },
+            new Menu { Name = "User Management", Path = "manage/users", Icon = "people", Order = 2 },
+            new Menu { Name = "Role Management", Path = "manage/roles", Icon = "admin_panel_settings", Order = 3 },
             
             // Course Management
-            new Menu { Name = "Courses", Path = "/courses", Icon = "school", Order = 4 },
-            new Menu { Name = "My Courses", Path = "/my-courses", Icon = "book", Order = 5 },
-            new Menu { Name = "Classes", Path = "/classes", Icon = "class", Order = 6 },
-            new Menu { Name = "My Classes", Path = "/my-classes", Icon = "group", Order = 7 },
+            new Menu { Name = "Courses", Path = "manage/courses", Icon = "school", Order = 4 },
+            new Menu { Name = "My Courses", Path = "manage/my-courses", Icon = "book", Order = 5 },
+            new Menu { Name = "Classes", Path = "manage/classes", Icon = "class", Order = 6 },
+            new Menu { Name = "My Classes", Path = "manage/my-classes", Icon = "group", Order = 7 },
             
             // Learning Materials
-            new Menu { Name = "Materials", Path = "/materials", Icon = "library_books", Order = 8 },
-            new Menu { Name = "Lessons", Path = "/lessons", Icon = "video_library", Order = 9 },
+            new Menu { Name = "Materials", Path = "manage/materials", Icon = "library_books", Order = 8 },
+            new Menu { Name = "Lessons", Path = "manage/lessons", Icon = "video_library", Order = 9 },
             
             // Assessments
-            new Menu { Name = "Assignments", Path = "/assignments", Icon = "assignment", Order = 10 },
-            new Menu { Name = "My Assignments", Path = "/my-assignments", Icon = "task", Order = 11 },
-            new Menu { Name = "Submissions", Path = "/submissions", Icon = "send", Order = 12 },
-            new Menu { Name = "Grades", Path = "/grades", Icon = "grade", Order = 13 },
+            new Menu { Name = "Assignments", Path = "manage/assignments", Icon = "assignment", Order = 10 },
+            new Menu { Name = "My Assignments", Path = "manage/my-assignments", Icon = "task", Order = 11 },
+            new Menu { Name = "Submissions", Path = "manage/submissions", Icon = "send", Order = 12 },
+            new Menu { Name = "Grades", Path = "manage/grades", Icon = "grade", Order = 13 },
             
             // Reports (Admin/Teacher only)
-            new Menu { Name = "Reports", Path = "/reports", Icon = "analytics", Order = 14 },
-            new Menu { Name = "Student Progress", Path = "/reports/progress", Icon = "trending_up", Order = 15 },
-            new Menu { Name = "Course Analytics", Path = "/reports/analytics", Icon = "bar_chart", Order = 16 },
+            new Menu { Name = "Reports", Path = "manage/reports", Icon = "analytics", Order = 14 },
+            new Menu { Name = "Student Progress", Path = "manage/reports/progress", Icon = "trending_up", Order = 15 },
+            new Menu { Name = "Course Analytics", Path = "manage/reports/analytics", Icon = "bar_chart", Order = 16 },
             
             // Profile and Settings
             new Menu { Name = "Profile", Path = "/profile", Icon = "person", Order = 17 },
@@ -538,7 +538,7 @@ public static class DatabaseSeeder
         {
             // Create 2-3 modules per course
             var moduleCount = course.Title.Contains("TOEIC") ? 3 : 2;
-            
+
             for (int i = 1; i <= moduleCount; i++)
             {
                 modules.Add(new Module
@@ -580,7 +580,7 @@ public static class DatabaseSeeder
         {
             // Create 3-5 lessons per module
             var lessonCount = 4;
-            
+
             for (int i = 1; i <= lessonCount; i++)
             {
                 lessons.Add(new Lesson
@@ -668,7 +668,7 @@ public static class DatabaseSeeder
         {
             // Create 1-2 classes per course
             var classCount = course.Title.Contains("TOEIC") ? 2 : 1;
-            
+
             for (int i = 1; i <= classCount; i++)
             {
                 classes.Add(new Class
@@ -818,7 +818,7 @@ public static class DatabaseSeeder
         {
             // Create 2-3 sections per lesson
             var sectionCount = Random.Shared.Next(2, 4);
-            
+
             for (int i = 1; i <= sectionCount; i++)
             {
                 sections.Add(new Section
@@ -954,11 +954,11 @@ public static class DatabaseSeeder
         {
             // Create 3-5 questions per assignment
             var questionCount = random.Next(3, 6);
-            
+
             for (int i = 1; i <= questionCount; i++)
             {
                 var questionType = questionTypes[random.Next(questionTypes.Count)];
-                
+
                 questions.Add(new Question
                 {
                     QuestionTypeId = questionType.Id,
@@ -993,7 +993,7 @@ public static class DatabaseSeeder
                 // Create 4 options per multiple choice question
                 var options = new[] { "A", "B", "C", "D" };
                 var correctOptionIndex = random.Next(0, 4);
-                
+
                 for (int i = 0; i < options.Length; i++)
                 {
                     questionOptions.Add(new QuestionOption
@@ -1041,7 +1041,7 @@ public static class DatabaseSeeder
         {
             // Get questions for this assignment
             var assignmentQuestions = questions.Where(q => q.AssignmentId == submission.AssignmentId).ToList();
-            
+
             foreach (var question in assignmentQuestions)
             {
                 var questionType = await context.QuestionTypes.FindAsync(question.QuestionTypeId);

@@ -121,7 +121,7 @@ public class UsersController(ILogger<UsersController> logger, IUserService userS
     // GET /api/v1/users/get-pagination
     [HttpGet("get-pagination")]
     [AllowAnonymous]
-    public async Task<ActionResult<Result<PaginatedResult<GetUsersWithPaginationDto>>>> GetUsersWithPagination([FromQuery] GetUsersWithPaginationQuery query, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaginatedResult<GetUsersWithPaginationDto>>> GetUsersWithPagination([FromQuery] GetUsersWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
