@@ -8,6 +8,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -235,7 +236,7 @@ public class QuestionService : BaseService, IQuestionService
         }
     }
 
-    public async Task<Result<PaginatedResult<GetQuestionsWithPaginationDto>>> GetQuestionsWithPagination(GetQuestionsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<GetQuestionsWithPaginationDto>>> GetQuestionsWithPagination(GetQuestionsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -284,12 +285,12 @@ public class QuestionService : BaseService, IQuestionService
                 .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
 
             LogInformation($"Retrieved {questions.TotalCount} questions with pagination successfully");
-            return Result<PaginatedResult<GetQuestionsWithPaginationDto>>.Success(questions, "Questions retrieved successfully");
+            return questions;
         }
         catch (Exception ex)
         {
             LogError("Error getting questions with pagination", ex);
-            return Result<PaginatedResult<GetQuestionsWithPaginationDto>>.Failure("An error occurred while retrieving questions");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 

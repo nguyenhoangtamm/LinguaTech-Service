@@ -8,6 +8,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -228,7 +229,7 @@ public class ModuleService : BaseService, IModuleService
         }
     }
 
-    public async Task<Result<PaginatedResult<GetModulesWithPaginationDto>>> GetModulesWithPagination(GetModulesWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<GetModulesWithPaginationDto>>> GetModulesWithPagination(GetModulesWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -267,12 +268,12 @@ public class ModuleService : BaseService, IModuleService
                 .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
 
             LogInformation($"Retrieved {modules.TotalCount} modules with pagination successfully");
-            return Result<PaginatedResult<GetModulesWithPaginationDto>>.Success(modules, "Modules retrieved successfully");
+            return modules;
         }
         catch (Exception ex)
         {
             LogError("Error getting modules with pagination", ex);
-            return Result<PaginatedResult<GetModulesWithPaginationDto>>.Failure("An error occurred while retrieving modules");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 

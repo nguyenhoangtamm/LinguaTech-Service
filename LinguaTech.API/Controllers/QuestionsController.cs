@@ -110,7 +110,7 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
     // GET /api/v1/questions/get-pagination
     [HttpGet("get-pagination")]
     [AllowAnonymous]
-    public async Task<ActionResult<Result<PaginatedResult<GetQuestionsWithPaginationDto>>>> GetQuestionsWithPagination([FromQuery] GetQuestionsWithPaginationQuery query, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaginatedResult<GetQuestionsWithPaginationDto>>> GetQuestionsWithPagination([FromQuery] GetQuestionsWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -128,20 +128,13 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
     // GET /api/v1/questions/assignment/{assignmentId}
     [HttpGet("assignment/{assignmentId}")]
     [AllowAnonymous]
-    public async Task<ActionResult<Result<List<GetQuestionDto>>>> GetByAssignmentId(int assignmentId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<Result<List<GetAllQuestionsDto>>>> GetByAssignmentId(int assignmentId, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting questions for assignment ID: {assignmentId}");
 
-            var result = await questionService.GetByAssignmentId(assignmentId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _questionService.GetByAssignmentId(assignmentId, cancellationToken);
         }
         catch (Exception ex)
         {

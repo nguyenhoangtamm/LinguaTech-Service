@@ -83,4 +83,58 @@ public class ModulesController(ILogger<ModulesController> logger, IModuleService
             return StatusCode(500, "An error occurred while retrieving the module");
         }
     }
+
+    // GET /api/v1/modules/course/{courseId}
+    [HttpGet("course/{courseId}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<ModuleWithLessonsType>>>> GetByCourseId(int courseId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            LogInformation($"Getting modules for course ID: {courseId}");
+
+            return await _moduleService.GetByCourseId(courseId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error getting modules for course ID: {courseId}", ex);
+            return StatusCode(500, "An error occurred while retrieving modules");
+        }
+    }
+
+    // GET /api/v1/modules/get-all
+    [HttpGet("get-all")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<GetAllModulesDto>>>> GetAll(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            LogInformation("Getting all modules");
+
+            return await _moduleService.GetAll(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting all modules", ex);
+            return StatusCode(500, "An error occurred while retrieving modules");
+        }
+    }
+
+    // GET /api/v1/modules/get-pagination
+    [HttpGet("get-pagination")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PaginatedResult<GetModulesWithPaginationDto>>> GetModulesWithPagination([FromQuery] GetModulesWithPaginationQuery query, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            LogInformation($"Getting modules with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
+
+            return await _moduleService.GetModulesWithPagination(query, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogError("Error getting modules with pagination", ex);
+            return StatusCode(500, "An error occurred while retrieving modules");
+        }
+    }
 }
