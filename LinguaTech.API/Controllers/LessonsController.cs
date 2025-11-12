@@ -37,7 +37,7 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // GET /api/v1/lessons/{id}
     [HttpGet("{id}")]
     [AllowAnonymous]
-    public async Task<ActionResult<Result<LessonType>>> GetLesson(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<LessonType>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
@@ -55,7 +55,7 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // POST /api/v1/lessons/create
     [HttpPost("create")]
     [Authorize]
-    public async Task<ActionResult<Result<int>>> CreateLesson([FromBody] CreateLessonRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateLessonRequest request, CancellationToken cancellationToken)
     {
         try
         {
@@ -73,7 +73,7 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // POST /api/v1/lessons/update/{id}
     [HttpPost("update/{id}")]
     [Authorize]
-    public async Task<ActionResult<Result<int>>> UpdateLesson([FromRoute] int id, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
     {
         try
         {
@@ -91,7 +91,7 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // POST /api/v1/lessons/delete/{id}
     [HttpPost("delete/{id}")]
     [Authorize]
-    public async Task<ActionResult<Result<int>>> DeleteLesson([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {

@@ -8,6 +8,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -197,7 +198,7 @@ public class SectionService : BaseService, ISectionService
         }
     }
 
-    public async Task<Result<PaginatedResult<SectionType>>> GetSectionsWithPagination(GetSectionsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<SectionType>>> GetSectionsWithPagination(GetSectionsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -228,15 +229,17 @@ public class SectionService : BaseService, ISectionService
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)
                 .ProjectTo<SectionType>(_mapper.ConfigurationProvider)
-                .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
+                .ToListAsync(cancellationToken);
 
-            LogInformation($"Retrieved {sections.TotalCount} sections with pagination successfully");
-            return Result<PaginatedResult<SectionType>>.Success(sections, "Sections retrieved successfully");
+            var result = PaginatedResult<SectionType>.Create(sections, totalRecords, query.PageNumber, query.PageSize);
+
+            LogInformation($"Retrieved {sections.Count} sections with pagination successfully for page {query.PageNumber}");
+            return result;
         }
         catch (Exception ex)
         {
             LogError("Error getting sections with pagination", ex);
-            return Result<PaginatedResult<SectionType>>.Failure("An error occurred while retrieving sections");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 

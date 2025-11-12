@@ -8,6 +8,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -656,7 +657,7 @@ return Result<List<SubmissionResponse>>.Success(result, "Submissions retrieved s
         }
     }
 
- public async Task<Result<object>> GetSubmissionsWithPagination(GetSubmissionsWithPaginationQuery query, CancellationToken cancellationToken)
+ public async Task<ActionResult<PaginatedResult<GetSubmissionsWithPaginationDto>>> GetSubmissionsWithPagination(GetSubmissionsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -698,52 +699,37 @@ return Result<List<SubmissionResponse>>.Success(result, "Submissions retrieved s
  }
 
      var totalCount = await submissionsQuery.CountAsync(cancellationToken);
-      var totalPages = (int)Math.Ceiling((double)totalCount / query.PageSize);
 
        var submissions = await submissionsQuery
          .Skip((query.PageNumber - 1) * query.PageSize)
            .Take(query.PageSize)
-    .Select(submission => new
+    .Select(submission => new GetSubmissionsWithPaginationDto
               {
-         submission.Id,
-           submission.AssignmentId,
-       submission.UserId,
-        submission.FileUrl,
-submission.Score,
-               submission.Feedback,
-           Assignment = new
-         {
-         submission.Assignment.Id,
-              submission.Assignment.Title
-       },
-            User = new
-              {
-   submission.User.Id,
-    submission.User.UserName
-         },
-      AnswersCount = submission.Answers.Count,
-     submission.CreatedBy,
-        submission.CreatedDate,
-        submission.UpdatedBy,
-     submission.UpdatedDate
+         Id = submission.Id,
+           AssignmentId = submission.AssignmentId,
+       UserId = submission.UserId,
+        FileUrl = submission.FileUrl,
+Score = submission.Score,
+               Feedback = submission.Feedback,
+           AssignmentTitle = submission.Assignment.Title,
+         UserName = submission.User.UserName,
+            AnswersCount = submission.Answers.Count,
+     CreatedBy = submission.CreatedBy,
+        CreatedDate = submission.CreatedDate,
+        UpdatedBy = submission.UpdatedBy,
+     UpdatedDate = submission.UpdatedDate
         })
 .ToListAsync(cancellationToken);
 
-         var result = new
-       {
-         Data = submissions,
- TotalCount = totalCount,
-     TotalPages = totalPages,
-      CurrentPage = query.PageNumber,
-   PageSize = query.PageSize
-    };
+         var result = PaginatedResult<GetSubmissionsWithPaginationDto>.Create(submissions, totalCount, query.PageNumber, query.PageSize);
 
-            return Result<object>.Success(result, "Submissions with pagination retrieved successfully");
+            LogInformation($"Retrieved {submissions.Count} submissions successfully for page {query.PageNumber}");
+            return result;
         }
       catch (Exception ex)
         {
 LogError("Error getting submissions with pagination", ex);
-            return Result<object>.Failure("An error occurred while retrieving submissions");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
       }
     }
 }

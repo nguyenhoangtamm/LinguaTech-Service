@@ -2,27 +2,26 @@ using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
 
+[ApiController]
 public class QuestionsController(ILogger<QuestionsController> logger, IQuestionService questionService) : ApiControllerBase(logger)
 {
+    private readonly IQuestionService _questionService = questionService;
+
+    // POST /api/v1/questions/create
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateQuestionRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateQuestionRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating question with content: {request.Content}");
 
-            var result = await questionService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _questionService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -31,8 +30,9 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
         }
     }
 
-    [HttpPost]
-    [Route("update/{id}")]
+    // POST /api/v1/questions/update/{id}
+    [HttpPost("update/{id}")]
+    [Authorize]
     public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateQuestionRequest request, CancellationToken cancellationToken)
     {
         try
@@ -44,14 +44,7 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
 
             LogInformation($"Updating question with ID: {request.Id}");
 
-            var result = await questionService.Update(request.Id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _questionService.Update(request.Id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -60,22 +53,16 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
         }
     }
 
-    [HttpPost]
-    [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    // POST /api/v1/questions/delete/{id}
+    [HttpPost("delete/{id}")]
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting question with ID: {id}");
 
-            var result = await questionService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _questionService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -84,21 +71,16 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
         }
     }
 
+    // GET /api/v1/questions/{id}
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<GetQuestionDto>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting question with ID: {id}");
 
-            var result = await questionService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _questionService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -107,22 +89,16 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
         }
     }
 
-    [HttpGet]
-    [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    // GET /api/v1/questions/get-all
+    [HttpGet("get-all")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<GetAllQuestionsDto>>>> GetAll(CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation("Getting all questions");
 
-            var result = await questionService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _questionService.GetAll(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -131,21 +107,16 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
         }
     }
 
+    // GET /api/v1/questions/get-pagination
     [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetQuestionsWithPagination([FromQuery] GetQuestionsWithPaginationQuery query, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<PaginatedResult<GetQuestionsWithPaginationDto>>>> GetQuestionsWithPagination([FromQuery] GetQuestionsWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting questions with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var result = await questionService.GetQuestionsWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _questionService.GetQuestionsWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -154,8 +125,10 @@ public class QuestionsController(ILogger<QuestionsController> logger, IQuestionS
         }
     }
 
+    // GET /api/v1/questions/assignment/{assignmentId}
     [HttpGet("assignment/{assignmentId}")]
-    public async Task<IActionResult> GetByAssignmentId(int assignmentId, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<GetQuestionDto>>>> GetByAssignmentId(int assignmentId, CancellationToken cancellationToken = default)
     {
         try
         {

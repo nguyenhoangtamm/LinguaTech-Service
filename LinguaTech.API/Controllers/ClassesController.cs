@@ -1,27 +1,26 @@
 using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
 
+[ApiController]
 public class ClassesController(ILogger<ClassesController> logger, IClassService classService) : ApiControllerBase(logger)
 {
+    private readonly IClassService _classService = classService;
+
+    // POST /api/v1/classes/create
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateClassRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateClassRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating class with name: {request.Name}");
 
-            var result = await classService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _classService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -30,8 +29,9 @@ public class ClassesController(ILogger<ClassesController> logger, IClassService 
         }
     }
 
-    [HttpPost]
-    [Route("update/{id}")]
+    // POST /api/v1/classes/update/{id}
+    [HttpPost("update/{id}")]
+    [Authorize]
     public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateClassRequest request, CancellationToken cancellationToken)
     {
         try
@@ -43,14 +43,7 @@ public class ClassesController(ILogger<ClassesController> logger, IClassService 
 
             LogInformation($"Updating class with ID: {request.Id}");
 
-            var result = await classService.Update(request.Id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _classService.Update(request.Id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -59,22 +52,16 @@ public class ClassesController(ILogger<ClassesController> logger, IClassService 
         }
     }
 
-    [HttpPost]
-    [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    // POST /api/v1/classes/delete/{id}
+    [HttpPost("delete/{id}")]
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting class with ID: {id}");
 
-            var result = await classService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _classService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -83,21 +70,16 @@ public class ClassesController(ILogger<ClassesController> logger, IClassService 
         }
     }
 
+    // GET /api/v1/classes/{id}
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<object>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting class with ID: {id}");
 
-            var result = await classService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _classService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -106,22 +88,16 @@ public class ClassesController(ILogger<ClassesController> logger, IClassService 
         }
     }
 
-    [HttpGet]
-    [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    // GET /api/v1/classes/get-all
+    [HttpGet("get-all")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<object>>>> GetAll(CancellationToken cancellationToken = default)
     {
         try
         {
-            LogInformation($"Getting all classes");
+            LogInformation("Getting all classes");
 
-            var result = await classService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _classService.GetAll(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -130,21 +106,16 @@ public class ClassesController(ILogger<ClassesController> logger, IClassService 
         }
     }
 
+    // GET /api/v1/classes/by-course/{courseId}
     [HttpGet("by-course/{courseId}")]
-    public async Task<IActionResult> GetByCourseId(int courseId, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<object>>>> GetByCourseId(int courseId, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting classes for course ID: {courseId}");
 
-            var result = await classService.GetByCourseId(courseId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _classService.GetByCourseId(courseId, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -153,21 +124,16 @@ public class ClassesController(ILogger<ClassesController> logger, IClassService 
         }
     }
 
+    // GET /api/v1/classes/get-pagination
     [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetClassesWithPagination([FromQuery] GetClassesWithPaginationQuery query, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<object>>> GetClassesWithPagination([FromQuery] GetClassesWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting classes with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var result = await classService.GetClassesWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _classService.GetClassesWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {

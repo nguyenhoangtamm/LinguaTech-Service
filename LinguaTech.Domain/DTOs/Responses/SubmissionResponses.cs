@@ -9,8 +9,26 @@ public class SubmissionResponse
     public string? SubmittedAt { get; set; }
     public string? GradedAt { get; set; }
     public int Status { get; set; }
+    public string? FileUrl { get; set; }
     public string? Feedback { get; set; }
     public List<AnswerResponse> Answers { get; set; } = new List<AnswerResponse>();
+}
+
+public class GetSubmissionsWithPaginationDto
+{
+    public int Id { get; set; }
+    public int AssignmentId { get; set; }
+    public int UserId { get; set; }
+    public string FileUrl { get; set; } = string.Empty;
+    public double? Score { get; set; }
+    public string? Feedback { get; set; }
+    public string AssignmentTitle { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
+    public int AnswersCount { get; set; }
+    public string? CreatedBy { get; set; }
+    public DateTime? CreatedDate { get; set; }
+    public string? UpdatedBy { get; set; }
+    public DateTime? UpdatedDate { get; set; }
 }
 
 public class AnswerResponse

@@ -18,7 +18,7 @@ public class SectionsController(ILogger<SectionsController> logger, ISectionServ
     // GET /api/v1/sections
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<Result<PaginatedResult<SectionType>>>> GetSections([FromQuery] GetSectionsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<SectionType>>> GetSections([FromQuery] GetSectionsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {

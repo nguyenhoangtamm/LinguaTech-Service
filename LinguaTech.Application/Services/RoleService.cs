@@ -2,12 +2,14 @@ using AutoMapper;
 using LinguaTech.Application.Interfaces;
 using LinguaTech.Application.Services;
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Entities;
 using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -130,7 +132,7 @@ public class RoleService : BaseService, IRoleService
         }
     }
 
-    public async Task<Result<object>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<Result<GetRoleDto>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
@@ -139,30 +141,22 @@ public class RoleService : BaseService, IRoleService
             var role = await _roleManager.FindByIdAsync(id.ToString());
             if (role == null || role.IsDeleted)
             {
-                return Result<object>.Failure("Role not found");
+                return Result<GetRoleDto>.Failure("Role not found");
             }
 
-            var result = new
-            {
-                role.Id,
-                role.Name,
-                role.Description,
-                role.CreatedBy,
-                role.CreatedDate,
-                role.UpdatedBy,
-                role.UpdatedDate
-            };
+            var roleDto = _mapper.Map<GetRoleDto>(role);
 
-            return Result<object>.Success(result, "Role retrieved successfully");
+            LogInformation($"Role retrieved successfully with ID: {id}");
+            return Result<GetRoleDto>.Success(roleDto, "Role retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError($"Error getting role with ID: {id}", ex);
-            return Result<object>.Failure("An error occurred while retrieving the role");
+            return Result<GetRoleDto>.Failure("An error occurred while retrieving the role");
         }
     }
 
-    public async Task<Result<List<object>>> GetAll(CancellationToken cancellationToken)
+    public async Task<Result<List<GetAllRolesDto>>> GetAll(CancellationToken cancellationToken)
     {
         try
         {
@@ -170,29 +164,21 @@ public class RoleService : BaseService, IRoleService
 
             var roles = await _roleManager.Roles
                 .Where(x => !x.IsDeleted)
-                .Select(role => new
-                {
-                    role.Id,
-                    role.Name,
-                    role.Description,
-                    role.CreatedBy,
-                    role.CreatedDate,
-                    role.UpdatedBy,
-                    role.UpdatedDate
-                })
                 .ToListAsync(cancellationToken);
 
-            var result = roles.Cast<object>().ToList();
-            return Result<List<object>>.Success(result, "Roles retrieved successfully");
+            var rolesDto = _mapper.Map<List<GetAllRolesDto>>(roles);
+
+            LogInformation($"Retrieved {roles.Count} roles successfully");
+            return Result<List<GetAllRolesDto>>.Success(rolesDto, "Roles retrieved successfully");
         }
         catch (Exception ex)
         {
             LogError("Error getting all roles", ex);
-            return Result<List<object>>.Failure("An error occurred while retrieving roles");
+            return Result<List<GetAllRolesDto>>.Failure("An error occurred while retrieving roles");
         }
     }
 
-    public async Task<Result<object>> GetRolesWithPagination(GetRolesWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<GetRolesWithPaginationDto>>> GetRolesWithPagination(GetRolesWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -208,38 +194,23 @@ public class RoleService : BaseService, IRoleService
             }
 
             var totalCount = await rolesQuery.CountAsync(cancellationToken);
-            var totalPages = (int)Math.Ceiling((double)totalCount / query.PageSize);
 
             var roles = await rolesQuery
                 .Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize)
-                .Select(role => new
-                {
-                    role.Id,
-                    role.Name,
-                    role.Description,
-                    role.CreatedBy,
-                    role.CreatedDate,
-                    role.UpdatedBy,
-                    role.UpdatedDate
-                })
                 .ToListAsync(cancellationToken);
 
-            var result = new
-            {
-                data = roles, // Changed from "Data" to "data" (lowercase)
-                TotalCount = totalCount,
-                TotalPages = totalPages,
-                CurrentPage = query.PageNumber,
-                PageSize = query.PageSize
-            };
+            var rolesDto = _mapper.Map<List<GetRolesWithPaginationDto>>(roles);
 
-            return Result<object>.Success(result, "Roles with pagination retrieved successfully");
+            var result = PaginatedResult<GetRolesWithPaginationDto>.Create(rolesDto, totalCount, query.PageNumber, query.PageSize);
+
+            LogInformation($"Retrieved {roles.Count} roles successfully for page {query.PageNumber}");
+            return result;
         }
         catch (Exception ex)
         {
             LogError("Error getting roles with pagination", ex);
-            return Result<object>.Failure("An error occurred while retrieving roles");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 }

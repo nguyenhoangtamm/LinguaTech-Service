@@ -98,6 +98,11 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.GradedAt, opt => opt.MapFrom(src => src.GradedAt.HasValue ? src.GradedAt.Value.ToString("O") : null))
             .ForMember(dest => dest.Answers, opt => opt.MapFrom(src => src.Answers));
 
+        CreateMap<Submission, GetSubmissionsWithPaginationDto>()
+            .ForMember(dest => dest.AssignmentTitle, opt => opt.MapFrom(src => src.Assignment.Title))
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
+            .ForMember(dest => dest.AnswersCount, opt => opt.MapFrom(src => src.Answers.Count));
+
         CreateMap<Answer, AnswerResponse>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.QuestionId.ToString()))

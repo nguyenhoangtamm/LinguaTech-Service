@@ -1,27 +1,25 @@
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
 
 public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmissionService submissionService) : ApiControllerBase(logger)
 {
+    private readonly ISubmissionService _submissionService = submissionService;
+
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateSubmissionRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateSubmissionRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating submission for assignment ID: {request.AssignmentId}, user ID: {request.UserId}");
 
-            var result = await submissionService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -32,6 +30,7 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
 
     [HttpPost]
     [Route("update/{id}")]
+    [Authorize]
     public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateSubmissionRequest request, CancellationToken cancellationToken)
     {
         try
@@ -43,14 +42,7 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
 
             LogInformation($"Updating submission with ID: {request.Id}");
 
-            var result = await submissionService.Update(request.Id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.Update(request.Id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -61,20 +53,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
 
     [HttpPost]
     [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting submission with ID: {id}");
 
-            var result = await submissionService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -84,20 +70,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<SubmissionResponse>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting submission with ID: {id}");
 
-            var result = await submissionService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _submissionService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -108,20 +88,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
 
     [HttpGet]
     [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<SubmissionResponse>>>> GetAll(CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting all submissions");
 
-            var result = await submissionService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.GetAll(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -131,20 +105,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
     }
 
     [HttpGet("by-assignment/{assignmentId}")]
-    public async Task<IActionResult> GetByAssignmentId(int assignmentId, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<SubmissionResponse>>>> GetByAssignmentId(int assignmentId, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting submissions for assignment ID: {assignmentId}");
 
-            var result = await submissionService.GetByAssignmentId(assignmentId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.GetByAssignmentId(assignmentId, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -154,20 +122,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
     }
 
     [HttpGet("by-user/{userId}")]
-    public async Task<IActionResult> GetByUserId(int userId, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<SubmissionResponse>>>> GetByUserId(int userId, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting submissions for user ID: {userId}");
 
-            var result = await submissionService.GetByUserId(userId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.GetByUserId(userId, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -177,20 +139,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
     }
 
     [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetSubmissionsWithPagination([FromQuery] GetSubmissionsWithPaginationQuery query, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<PaginatedResult<GetSubmissionsWithPaginationDto>>> GetSubmissionsWithPagination([FromQuery] GetSubmissionsWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting submissions with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var result = await submissionService.GetSubmissionsWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.GetSubmissionsWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -201,20 +157,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
 
     // New endpoints for assignment submission
     [HttpGet("current-user-submission/{assignmentId}")]
-    public async Task<IActionResult> GetCurrentUserSubmission(int assignmentId, CancellationToken cancellationToken = default)
+    [Authorize]
+    public async Task<ActionResult<Result<SubmissionResponse>>> GetCurrentUserSubmission(int assignmentId, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting current user submission for assignment ID: {assignmentId}");
 
-            var result = await submissionService.GetCurrentUserSubmissionByAssignmentId(assignmentId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _submissionService.GetCurrentUserSubmissionByAssignmentId(assignmentId, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -224,20 +174,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
     }
 
     [HttpPost("{assignmentId}/submit")]
-    public async Task<IActionResult> SubmitAssignment([FromRoute] int assignmentId, [FromBody] SubmitAssignmentRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<SubmitAssignmentResponse>>> SubmitAssignment([FromRoute] int assignmentId, [FromBody] SubmitAssignmentRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Submitting assignment ID: {assignmentId}");
 
-            var result = await submissionService.SubmitAssignment(assignmentId, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.SubmitAssignment(assignmentId, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -247,20 +191,14 @@ public class SubmissionsController(ILogger<SubmissionsController> logger, ISubmi
     }
 
     [HttpPut("{assignmentId}/draft")]
-    public async Task<IActionResult> SaveDraft([FromRoute] int assignmentId, [FromBody] SaveDraftRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<SaveDraftResponse>>> SaveDraft([FromRoute] int assignmentId, [FromBody] SaveDraftRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Saving draft for assignment ID: {assignmentId}");
 
-            var result = await submissionService.SaveDraftAnswers(assignmentId, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _submissionService.SaveDraftAnswers(assignmentId, request, cancellationToken);
         }
         catch (Exception ex)
         {

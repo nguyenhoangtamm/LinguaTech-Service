@@ -1,27 +1,26 @@
 using LinguaTech.Domain.DTOs.Requests;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
 
+[ApiController]
 public class ProfilesController(ILogger<ProfilesController> logger, IProfileService profileService) : ApiControllerBase(logger)
 {
+    private readonly IProfileService _profileService = profileService;
+
+    // POST /api/v1/profiles/create
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateProfileRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateProfileRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating profile for user ID: {request.UserId}");
 
-            var result = await profileService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _profileService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -30,8 +29,9 @@ public class ProfilesController(ILogger<ProfilesController> logger, IProfileServ
         }
     }
 
-    [HttpPost]
-    [Route("update/{id}")]
+    // POST /api/v1/profiles/update/{id}
+    [HttpPost("update/{id}")]
+    [Authorize]
     public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateProfileRequest request, CancellationToken cancellationToken)
     {
         try
@@ -43,14 +43,7 @@ public class ProfilesController(ILogger<ProfilesController> logger, IProfileServ
 
             LogInformation($"Updating profile with ID: {request.Id}");
 
-            var result = await profileService.Update(request.Id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _profileService.Update(request.Id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -59,22 +52,16 @@ public class ProfilesController(ILogger<ProfilesController> logger, IProfileServ
         }
     }
 
-    [HttpPost]
-    [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    // POST /api/v1/profiles/delete/{id}
+    [HttpPost("delete/{id}")]
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting profile with ID: {id}");
 
-            var result = await profileService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _profileService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -83,21 +70,16 @@ public class ProfilesController(ILogger<ProfilesController> logger, IProfileServ
         }
     }
 
+    // GET /api/v1/profiles/{id}
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<object>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting profile with ID: {id}");
 
-            var result = await profileService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _profileService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -106,21 +88,16 @@ public class ProfilesController(ILogger<ProfilesController> logger, IProfileServ
         }
     }
 
+    // GET /api/v1/profiles/by-user/{userId}
     [HttpGet("by-user/{userId}")]
-    public async Task<IActionResult> GetByUserId(int userId, CancellationToken cancellationToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<object>>> GetByUserId(int userId, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting profile for user ID: {userId}");
 
-            var result = await profileService.GetByUserId(userId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _profileService.GetByUserId(userId, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -129,22 +106,16 @@ public class ProfilesController(ILogger<ProfilesController> logger, IProfileServ
         }
     }
 
-    [HttpGet]
-    [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    // GET /api/v1/profiles/get-all
+    [HttpGet("get-all")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<object>>>> GetAll(CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting all profiles");
 
-            var result = await profileService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _profileService.GetAll(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -153,21 +124,16 @@ public class ProfilesController(ILogger<ProfilesController> logger, IProfileServ
         }
     }
 
+    // GET /api/v1/profiles/get-pagination
     [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetProfilesWithPagination([FromQuery] GetProfilesWithPaginationQuery query, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<object>>> GetProfilesWithPagination([FromQuery] GetProfilesWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting profiles with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var result = await profileService.GetProfilesWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _profileService.GetProfilesWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {

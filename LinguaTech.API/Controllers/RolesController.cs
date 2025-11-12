@@ -1,27 +1,27 @@
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinguaTech.API.Controllers;
 
+[ApiController]
+[Route("api/v1/[controller]")]
 public class RolesController(ILogger<RolesController> logger, IRoleService roleService) : ApiControllerBase(logger)
 {
+    private readonly IRoleService _roleService = roleService;
+
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateRoleRequest request, CancellationToken cancellationToken)
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateRoleRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating role with name: {request.Name}");
 
-            var result = await roleService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _roleService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -30,8 +30,8 @@ public class RolesController(ILogger<RolesController> logger, IRoleService roleS
         }
     }
 
-    [HttpPost]
-    [Route("update/{id}")]
+    [HttpPost("update/{id}")]
+    [Authorize]
     public async Task<ActionResult<Result<int>>> Update([FromRoute] int id, [FromBody] UpdateRoleRequest request, CancellationToken cancellationToken)
     {
         try
@@ -43,14 +43,7 @@ public class RolesController(ILogger<RolesController> logger, IRoleService roleS
 
             LogInformation($"Updating role with ID: {request.Id}");
 
-            var result = await roleService.Update(request.Id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _roleService.Update(request.Id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -59,22 +52,15 @@ public class RolesController(ILogger<RolesController> logger, IRoleService roleS
         }
     }
 
-    [HttpPost]
-    [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    [HttpPost("delete/{id}")]
+    [Authorize]
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting role with ID: {id}");
 
-            var result = await roleService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _roleService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -84,20 +70,14 @@ public class RolesController(ILogger<RolesController> logger, IRoleService roleS
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<GetRoleDto>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting role with ID: {id}");
 
-            var result = await roleService.GetById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await _roleService.GetById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -106,22 +86,15 @@ public class RolesController(ILogger<RolesController> logger, IRoleService roleS
         }
     }
 
-    [HttpGet]
-    [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    [HttpGet("get-all")]
+    [AllowAnonymous]
+    public async Task<ActionResult<Result<List<GetAllRolesDto>>>> GetAll(CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting all roles");
 
-            var result = await roleService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _roleService.GetAll(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -131,20 +104,14 @@ public class RolesController(ILogger<RolesController> logger, IRoleService roleS
     }
 
     [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetRolesWithPagination([FromQuery] GetRolesWithPaginationQuery query, CancellationToken cancellationToken = default)
+    [AllowAnonymous]
+    public async Task<ActionResult<PaginatedResult<GetRolesWithPaginationDto>>> GetRolesWithPagination([FromQuery] GetRolesWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting roles with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var result = await roleService.GetRolesWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await _roleService.GetRolesWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
