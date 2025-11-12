@@ -8,6 +8,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -235,7 +236,7 @@ public class LessonService : BaseService, ILessonService
         }
     }
 
-    public async Task<Result<PaginatedResult<LessonType>>> GetLessonsWithPagination(GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<LessonType>>> GetLessonsWithPagination(GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -280,12 +281,12 @@ public class LessonService : BaseService, ILessonService
                 .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
 
             LogInformation($"Retrieved {lessons.TotalCount} lessons with pagination successfully");
-            return Result<PaginatedResult<LessonType>>.Success(lessons, "Lessons retrieved successfully");
+            return lessons;
         }
         catch (Exception ex)
         {
             LogError("Error getting lessons with pagination", ex);
-            return Result<PaginatedResult<LessonType>>.Failure("An error occurred while retrieving lessons");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 

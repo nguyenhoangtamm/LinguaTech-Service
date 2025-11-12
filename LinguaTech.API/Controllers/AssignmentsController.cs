@@ -1,4 +1,5 @@
 using LinguaTech.Domain.DTOs.Requests;
+using LinguaTech.Domain.DTOs.Responses;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Mvc;
@@ -8,20 +9,13 @@ namespace LinguaTech.API.Controllers;
 public class AssignmentsController(ILogger<AssignmentsController> logger, IAssignmentService assignmentService) : ApiControllerBase(logger)
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateAssignmentRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Create([FromBody] CreateAssignmentRequest request, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Creating assignment with title: {request.Title}");
 
-            var result = await assignmentService.Create(request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await assignmentService.Create(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -43,14 +37,7 @@ public class AssignmentsController(ILogger<AssignmentsController> logger, IAssig
 
             LogInformation($"Updating assignment with ID: {request.Id}");
 
-            var result = await assignmentService.Update(request.Id, request, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await assignmentService.Update(request.Id, request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -61,20 +48,13 @@ public class AssignmentsController(ILogger<AssignmentsController> logger, IAssig
 
     [HttpPost]
     [Route("delete/{id}")]
-    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<int>>> Delete([FromRoute] int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Deleting assignment with ID: {id}");
 
-            var result = await assignmentService.Delete(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await assignmentService.Delete(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -84,20 +64,13 @@ public class AssignmentsController(ILogger<AssignmentsController> logger, IAssig
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<GetAssignmentDto>>> GetById(int id, CancellationToken cancellationToken)
     {
         try
         {
             LogInformation($"Getting assignment with ID: {id}");
 
-            var result = await assignmentService.GetAssignmentWithQuestionsById(id, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return NotFound(result);
+            return await assignmentService.GetAssignmentWithQuestionsById(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -108,20 +81,13 @@ public class AssignmentsController(ILogger<AssignmentsController> logger, IAssig
 
     [HttpGet]
     [Route("get-all")]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<Result<List<GetAllAssignmentsDto>>>> GetAll(CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation("Getting all assignments");
 
-            var result = await assignmentService.GetAll(cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await assignmentService.GetAll(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -131,20 +97,13 @@ public class AssignmentsController(ILogger<AssignmentsController> logger, IAssig
     }
 
     [HttpGet("get-pagination")]
-    public async Task<IActionResult> GetAssignmentsWithPagination([FromQuery] GetAssignmentsWithPaginationQuery query, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaginatedResult<GetAssignmentsWithPaginationDto>>> GetAssignmentsWithPagination([FromQuery] GetAssignmentsWithPaginationQuery query, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting assignments with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var result = await assignmentService.GetAssignmentsWithPagination(query, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await assignmentService.GetAssignmentsWithPagination(query, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -154,20 +113,13 @@ public class AssignmentsController(ILogger<AssignmentsController> logger, IAssig
     }
 
     [HttpGet("lesson/{lessonId}")]
-    public async Task<IActionResult> GetByLessonId(int lessonId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<Result<List<GetAllAssignmentsDto>>>> GetByLessonId(int lessonId, CancellationToken cancellationToken = default)
     {
         try
         {
             LogInformation($"Getting assignments for lesson ID: {lessonId}");
 
-            var result = await assignmentService.GetByLessonId(lessonId, cancellationToken);
-
-            if (result.Succeeded)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            return await assignmentService.GetByLessonId(lessonId, cancellationToken);
         }
         catch (Exception ex)
         {

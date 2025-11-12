@@ -19,7 +19,7 @@ public class LessonsController(ILogger<LessonsController> logger, ILessonService
     // GET /api/v1/lessons
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<Result<PaginatedResult<LessonType>>>> GetLessons([FromQuery] GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<LessonType>>> GetLessons([FromQuery] GetLessonsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {

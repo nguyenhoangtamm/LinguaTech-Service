@@ -8,6 +8,7 @@ using LinguaTech.Domain.Interfaces;
 using LinguaTech.Domain.Interfaces.Services;
 using LinguaTech.Domain.Shares;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -287,7 +288,7 @@ public class AssignmentService : BaseService, IAssignmentService
         }
     }
 
-    public async Task<Result<PaginatedResult<GetAssignmentsWithPaginationDto>>> GetAssignmentsWithPagination(GetAssignmentsWithPaginationQuery query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResult<GetAssignmentsWithPaginationDto>>> GetAssignmentsWithPagination(GetAssignmentsWithPaginationQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -341,12 +342,12 @@ public class AssignmentService : BaseService, IAssignmentService
                 .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
 
             LogInformation($"Retrieved {assignments.TotalCount} assignments with pagination successfully");
-            return Result<PaginatedResult<GetAssignmentsWithPaginationDto>>.Success(assignments, "Assignments retrieved successfully");
+            return assignments;
         }
         catch (Exception ex)
         {
             LogError("Error getting assignments with pagination", ex);
-            return Result<PaginatedResult<GetAssignmentsWithPaginationDto>>.Failure("An error occurred while retrieving assignments");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
 

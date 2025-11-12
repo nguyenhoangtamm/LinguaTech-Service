@@ -233,8 +233,8 @@ public class CourseService : BaseService, ICourseService
         {
             LogInformation($"Getting courses with pagination - Page: {query.PageNumber}, Size: {query.PageSize}");
 
-            var courseRepository = _unitOfWork.Repository<Course>();
-            var queryable = courseRepository.Entities
+            var queryable = _unitOfWork.Repository<Course>()
+                .Entities
          .Include(c => c.User)
          .Include(c => c.CourseTags).ThenInclude(ct => ct.CourseTag)
          .AsQueryable();
