@@ -45,10 +45,24 @@ public class CourseService : BaseService, ICourseService
                 return Result<int>.Failure("Course with this title already exists");
             }
 
+            // Validate CategoryId exists
+            if (request.CategoryId > 0)
+            {
+                var categoryRepository = _unitOfWork.Repository<CourseCategory>();
+                var categoryExists = await categoryRepository.Entities
+                    .AnyAsync(c => c.Id == request.CategoryId && !c.IsDeleted, cancellationToken);
+
+                if (!categoryExists)
+                {
+                    return Result<int>.Failure($"Course category with ID {request.CategoryId} does not exist");
+                }
+            }
+
             var course = new Course
             {
                 Title = request.Title,
                 Description = request.Description,
+                DetailedDescription = request.DetailedDescription,
                 Instructor = request.Instructor,
                 Level = request.Level,
                 Duration = request.Duration,
@@ -104,12 +118,28 @@ public class CourseService : BaseService, ICourseService
                 }
             }
 
+            // Validate CategoryId exists (if changing category)
+            if (request.CategoryId.HasValue && request.CategoryId.Value > 0)
+            {
+                var categoryRepository = _unitOfWork.Repository<CourseCategory>();
+                var categoryExists = await categoryRepository.Entities
+                    .AnyAsync(c => c.Id == request.CategoryId.Value && !c.IsDeleted, cancellationToken);
+
+                if (!categoryExists)
+                {
+                    return Result<int>.Failure($"Course category with ID {request.CategoryId.Value} does not exist");
+                }
+            }
+
             // Update course properties
             if (!string.IsNullOrEmpty(request.Title))
                 course.Title = request.Title;
 
             if (!string.IsNullOrEmpty(request.Description))
                 course.Description = request.Description;
+
+            if (!string.IsNullOrEmpty(request.DetailedDescription))
+                course.DetailedDescription = request.DetailedDescription;
 
             if (!string.IsNullOrEmpty(request.Instructor))
                 course.Instructor = request.Instructor;
@@ -183,9 +213,11 @@ public class CourseService : BaseService, ICourseService
 
             var courseRepository = _unitOfWork.Repository<Course>();
             var courseDto = await courseRepository.Entities
-            .Include(c => c.User)
-            .Include(c => c.CourseTags).ThenInclude(ct => ct.CourseTag)
-            .Where(c => c.Id == id)
+                .Include(c => c.User)
+                .Include(c => c.CourseTags).ThenInclude(ct => ct.CourseTag)
+                .Include(c => c.Modules)
+                .ThenInclude(m => m.Lessons)
+                .Where(c => c.Id == id)
                 .ProjectTo<CourseTypeResponse>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -272,7 +304,7 @@ public class CourseService : BaseService, ICourseService
 
             if (query.Tags != null && query.Tags.Any())
             {
-                queryable = queryable.Where(c => c.CourseTags.Any(ct => query.Tags.Contains(ct.CourseTag.Name)));
+                queryable = queryable.Where(c => c.CourseTags.Any(ct => query.Tags.Contains(ct.CourseTagId)));
             }
 
             // Apply sorting
@@ -327,6 +359,10 @@ public class CourseService : BaseService, ICourseService
                 .ProjectTo<ModuleWithLessonsType>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
 
+            // Calculate module count and lesson count
+            var modulesCount = modules.Count;
+            var lessonsCount = modules.Sum(m => m.Lessons.Count);
+
             // Get all materials for this course by joining through lessons and modules
             var materialRepository = _unitOfWork.Repository<Material>();
             var materials = await materialRepository.Entities
@@ -357,6 +393,8 @@ public class CourseService : BaseService, ICourseService
             var result = new CourseDetailTypeResponse
             {
                 Course = courseDto,
+                ModulesCount = modulesCount,
+                LessonsCount = lessonsCount,
                 Modules = modules,
                 Materials = materials,
                 Instructor = instructorDetail,

@@ -46,5 +46,6 @@ public class GetModulesWithPaginationDto : IMapFrom<Module>
     public string? Description { get; set; }
     public int Order { get; set; }
     public int CourseId { get; set; }
+    public int LessonsCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }

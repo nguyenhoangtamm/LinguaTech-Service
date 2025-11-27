@@ -7,6 +7,7 @@ public class Course : BaseAuditableEntity
 {
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? DetailedDescription { get; set; }
     public string Instructor { get; set; } = string.Empty;
     public string? ThumbnailUrl { get; set; }
     public string? VideoUrl { get; set; }

@@ -5,6 +5,6 @@ namespace LinguaTech.Domain.Common.Security
         public string Key { get; set; } = string.Empty;
         public string Issuer { get; set; } = string.Empty;
         public string Audience { get; set; } = string.Empty;
-        public int ExpiresInMinutes { get; set; } = 60 * 24 * 7;
+        public int ExpiresInMinutes { get; set; } = 10080; // 7 days
     }
 }

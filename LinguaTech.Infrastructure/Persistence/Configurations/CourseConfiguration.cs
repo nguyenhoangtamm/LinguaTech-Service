@@ -19,6 +19,9 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .IsRequired()
             .HasMaxLength(2000);
 
+        builder.Property(e => e.DetailedDescription)
+            .HasColumnType("text");
+
         builder.Property(e => e.Instructor)
             .IsRequired()
             .HasMaxLength(200);

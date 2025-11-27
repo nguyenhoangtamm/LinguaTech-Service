@@ -14,6 +14,7 @@ public class LessonType : IMapFrom<Lesson>
     public bool IsPublished { get; set; }
     public bool IsCompleted { get; set; }
     public int ModuleId { get; set; }
+    public int SectionsCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

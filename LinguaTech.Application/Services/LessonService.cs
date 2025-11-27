@@ -191,6 +191,7 @@ public class LessonService : BaseService, ILessonService
             var lesson = await lessonRepository.Entities
                 .Include(l => l.Module)
                 .ThenInclude(m => m.Course)
+                .Include(l => l.Sections)
                 .Where(l => l.Id == id && !l.IsDeleted)
                 .ProjectTo<LessonType>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -246,6 +247,7 @@ public class LessonService : BaseService, ILessonService
             var lessonsQuery = lessonRepository.Entities
                 .Include(l => l.Module)
                 .ThenInclude(m => m.Course)
+                .Include(l => l.Sections)
                 .Where(l => !l.IsDeleted);
 
             // Apply filters
@@ -253,6 +255,10 @@ public class LessonService : BaseService, ILessonService
             {
                 lessonsQuery = lessonsQuery.Where(l => l.Title.Contains(query.Keyword) ||
                     (!string.IsNullOrEmpty(l.Content) && l.Content.Contains(query.Keyword)));
+            }
+            if (query.CourseId.HasValue)
+            {
+                lessonsQuery = lessonsQuery.Where(l => l.Module.CourseId == query.CourseId.Value);
             }
 
             if (query.ModuleId.HasValue)

@@ -15,6 +15,7 @@ public class CourseType : IMapFrom<Course>
     public string Id { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? DetailedDescription { get; set; }
     public string Instructor { get; set; } = string.Empty;
     public int Duration { get; set; }
     public int Level { get; set; } // enum: 1|2|3 (beginner|intermediate|advanced)
@@ -23,11 +24,13 @@ public class CourseType : IMapFrom<Course>
     public int StudentsCount { get; set; }
     public CourseCategoryType Category { get; set; } = new CourseCategoryType();
     public List<string> Tags { get; set; } = new List<string>();
-    public string Thumbnail { get; set; } = string.Empty;
+    public string ThumbnailUrl { get; set; } = string.Empty;
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public bool IsPublished { get; set; }
+    public int ModulesCount { get; set; }
+    public int LessonsCount { get; set; }
 }
 
 public class CourseCategoryType : IMapFrom<CourseCategory>
@@ -46,6 +49,7 @@ public class GetCourseDto : IMapFrom<Course>
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? DetailedDescription { get; set; }
     public string Instructor { get; set; } = string.Empty;
     public int Duration { get; set; }
     public string Level { get; set; } = string.Empty;
@@ -54,7 +58,7 @@ public class GetCourseDto : IMapFrom<Course>
     public int StudentsCount { get; set; }
     public CourseCategoryType Category { get; set; } = new CourseCategoryType();
     public List<string> Tags { get; set; } = new List<string>();
-    public string Thumbnail { get; set; } = string.Empty;
+    public string ThumbnailUrl { get; set; } = string.Empty;
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -81,13 +85,15 @@ public class GetCoursesWithPaginationDto : IMapFrom<Course>
     public decimal Price { get; set; }
     public double Rating { get; set; }
     public string Level { get; set; } = string.Empty;
-    public string Thumbnail { get; set; } = string.Empty;
+    public string ThumbnailUrl { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }
 
 public class CourseDetailType
 {
     public CourseType Course { get; set; } = new CourseType();
+    public int ModulesCount { get; set; }
+    public int LessonsCount { get; set; }
     public List<ModuleWithLessonsType> Modules { get; set; } = new List<ModuleWithLessonsType>();
     public List<MaterialType> Materials { get; set; } = new List<MaterialType>();
     public InstructorDetailType Instructor { get; set; } = new InstructorDetailType();

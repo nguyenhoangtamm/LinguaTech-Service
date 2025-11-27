@@ -52,13 +52,16 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Level))
             .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag.Name)))
-            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+            .ForMember(dest => dest.ModulesCount, opt => opt.MapFrom(src => src.Modules.Count(m => !m.IsDeleted)))
+            .ForMember(dest => dest.LessonsCount, opt => opt.MapFrom(src => src.Modules.Where(m => !m.IsDeleted).SelectMany(m => m.Lessons).Count(l => !l.IsDeleted)));
 
         CreateMap<CourseCategory, CourseCategoryType>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString())); // Updated mapping to convert Id to string
 
         // Lesson mappings
-        CreateMap<Lesson, LessonType>();
+        CreateMap<Lesson, LessonType>()
+            .ForMember(dest => dest.SectionsCount, opt => opt.MapFrom(src => src.Sections.Count(s => !s.IsDeleted)));
 
         CreateMap<Lesson, LessonWithMaterialsType>();
 
@@ -69,6 +72,9 @@ public class MappingProfile : AutoMapper.Profile
         CreateMap<Entities.Module, ModuleType>();
 
         CreateMap<Entities.Module, ModuleWithLessonsType>();
+
+        CreateMap<Entities.Module, GetModulesWithPaginationDto>()
+            .ForMember(dest => dest.LessonsCount, opt => opt.MapFrom(src => src.Lessons.Count(l => !l.IsDeleted)));
 
         // Material mappings
         CreateMap<Material, MaterialType>();

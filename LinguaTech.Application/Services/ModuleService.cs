@@ -56,6 +56,7 @@ public class ModuleService : BaseService, IModuleService
                 CourseId = request.CourseId,
                 Title = request.Title,
                 Order = request.Order,
+                Description = request.Description,
                 CreatedDate = DateTime.UtcNow,
                 CreatedBy = UserName ?? "System"
             };
@@ -105,6 +106,8 @@ public class ModuleService : BaseService, IModuleService
 
             if (request.Order.HasValue)
                 module.Order = request.Order.Value;
+            if (!string.IsNullOrEmpty(request.Description))
+                module.Description = request.Description;
 
             module.UpdatedDate = DateTime.UtcNow;
             module.UpdatedBy = UserName ?? "System";
@@ -239,6 +242,7 @@ public class ModuleService : BaseService, IModuleService
             var modulesQuery = moduleRepository.Entities
                 .Include(m => m.Course)
                 .Include(m => m.Parent)
+                .Include(m => m.Lessons)
                 .Where(m => !m.IsDeleted);
 
             // Apply filters
