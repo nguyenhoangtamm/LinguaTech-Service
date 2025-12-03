@@ -23,7 +23,7 @@ public class CourseType : IMapFrom<Course>
     public double Rating { get; set; }
     public int StudentsCount { get; set; }
     public CourseCategoryType Category { get; set; } = new CourseCategoryType();
-    public List<string> Tags { get; set; } = new List<string>();
+    public List<int> Tags { get; set; } = new List<int>();
     public string ThumbnailUrl { get; set; } = string.Empty;
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }

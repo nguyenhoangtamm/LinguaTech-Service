@@ -162,7 +162,7 @@ public static class DatabaseSeeder
                     Fullname = "Test User",
                     Email = regularUserEmail,
                     Gender = "Male",
-                    BirthDate = new DateTime(1990, 1, 1),
+                    BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Address = "123 Test Street, Test City",
                     PhoneNumber = "+84-123456789",
                     Bio = "This is a test user account",
@@ -193,41 +193,22 @@ public static class DatabaseSeeder
         var menus = new List<Menu>
         {
             // Main navigation menus
-            new Menu { Name = "Dashboard", Path = "manage/dashboard", Icon = "dashboard", Order = 1 },
+            new Menu { Name = "Dashboard", Path = "/manage/dashboard", Icon = "dashboard", Order = 1 },
             
             // User Management (Admin only)
-            new Menu { Name = "User Management", Path = "manage/users", Icon = "people", Order = 2 },
-            new Menu { Name = "Role Management", Path = "manage/roles", Icon = "admin_panel_settings", Order = 3 },
+            new Menu { Name = "User Management", Path = "/manage/users", Icon = "people", Order = 2 },
+            new Menu { Name = "Role Management", Path = "/manage/roles", Icon = "admin_panel_settings", Order = 3 },
             
             // Course Management
-            new Menu { Name = "Courses", Path = "manage/courses", Icon = "school", Order = 4 },
-            new Menu { Name = "My Courses", Path = "manage/my-courses", Icon = "book", Order = 5 },
-            new Menu { Name = "Classes", Path = "manage/classes", Icon = "class", Order = 6 },
-            new Menu { Name = "My Classes", Path = "manage/my-classes", Icon = "group", Order = 7 },
+            new Menu { Name = "Courses", Path = "/manage/courses", Icon = "school", Order = 4 },
+            new Menu { Name = "Classes", Path = "/manage/classes", Icon = "class", Order = 6 },
             
             // Learning Materials
-            new Menu { Name = "Materials", Path = "manage/materials", Icon = "library_books", Order = 8 },
-            new Menu { Name = "Lessons", Path = "manage/lessons", Icon = "video_library", Order = 9 },
+            new Menu { Name = "Lessons", Path = "/manage/lessons", Icon = "video_library", Order = 9 },
             
             // Assessments
-            new Menu { Name = "Assignments", Path = "manage/assignments", Icon = "assignment", Order = 10 },
-            new Menu { Name = "My Assignments", Path = "manage/my-assignments", Icon = "task", Order = 11 },
-            new Menu { Name = "Submissions", Path = "manage/submissions", Icon = "send", Order = 12 },
-            new Menu { Name = "Grades", Path = "manage/grades", Icon = "grade", Order = 13 },
-            
-            // Reports (Admin/Teacher only)
-            new Menu { Name = "Reports", Path = "manage/reports", Icon = "analytics", Order = 14 },
-            new Menu { Name = "Student Progress", Path = "manage/reports/progress", Icon = "trending_up", Order = 15 },
-            new Menu { Name = "Course Analytics", Path = "manage/reports/analytics", Icon = "bar_chart", Order = 16 },
-            
-            // Profile and Settings
-            new Menu { Name = "Profile", Path = "/profile", Icon = "person", Order = 17 },
-            new Menu { Name = "Settings", Path = "/settings", Icon = "settings", Order = 18 },
-            new Menu { Name = "System Settings", Path = "/system-settings", Icon = "build", Order = 19 },
-            
-            // Help and Support
-            new Menu { Name = "Help", Path = "/help", Icon = "help", Order = 20 },
-            new Menu { Name = "Support", Path = "/support", Icon = "support", Order = 21 }
+            new Menu { Name = "Assignments", Path = "/manage/assignments", Icon = "assignment", Order = 10 },
+            new Menu { Name = "Submissions", Path = "/manage/submissions", Icon = "send", Order = 12 },
         };
 
         try
@@ -239,13 +220,11 @@ public static class DatabaseSeeder
 
             // Get roles for menu assignment
             var adminRole = await roleManager.FindByNameAsync("Admin");
-            var teacherRole = await roleManager.FindByNameAsync("Teacher");
-            var studentRole = await roleManager.FindByNameAsync("Student");
-            var managerRole = await roleManager.FindByNameAsync("Manager");
+            var userRole = await roleManager.FindByNameAsync("User");
 
-            if (adminRole == null || teacherRole == null || studentRole == null || managerRole == null)
+            if (adminRole == null)
             {
-                logger.LogError("One or more roles not found. Cannot assign menus to roles.");
+                logger.LogError("Admin role not found. Cannot assign menus to roles.");
                 return;
             }
 
@@ -256,46 +235,13 @@ public static class DatabaseSeeder
             var roleMenuAssignments = new List<RoleMenu>();
 
             // Admin - Full access to all menus
-            var adminMenus = new[] { "Dashboard", "User Management", "Role Management", "Courses", "Classes", "Materials", "Lessons", "Assignments", "Submissions", "Grades", "Reports", "Student Progress", "Course Analytics", "Profile", "Settings", "System Settings", "Help", "Support" };
+            var adminMenus = new[] { "Dashboard", "User Management", "Role Management", "Courses", "Classes", "Lessons", "Assignments", "Submissions" };
 
             foreach (var menuName in adminMenus)
             {
                 if (menuDict.ContainsKey(menuName))
                 {
                     roleMenuAssignments.Add(new RoleMenu { RoleId = adminRole.Id, MenuId = menuDict[menuName] });
-                }
-            }
-
-            // Teacher - Course management and teaching tools
-            var teacherMenus = new[] { "Dashboard", "My Courses", "My Classes", "Materials", "Lessons", "Assignments", "My Assignments", "Submissions", "Grades", "Reports", "Student Progress", "Course Analytics", "Profile", "Settings", "Help", "Support" };
-
-            foreach (var menuName in teacherMenus)
-            {
-                if (menuDict.ContainsKey(menuName))
-                {
-                    roleMenuAssignments.Add(new RoleMenu { RoleId = teacherRole.Id, MenuId = menuDict[menuName] });
-                }
-            }
-
-            // Student - Learning focused menus
-            var studentMenus = new[] { "Dashboard", "My Courses", "My Classes", "Materials", "Lessons", "My Assignments", "Submissions", "Grades", "Profile", "Settings", "Help", "Support" };
-
-            foreach (var menuName in studentMenus)
-            {
-                if (menuDict.ContainsKey(menuName))
-                {
-                    roleMenuAssignments.Add(new RoleMenu { RoleId = studentRole.Id, MenuId = menuDict[menuName] });
-                }
-            }
-
-            // Manager - Course oversight and management
-            var managerMenus = new[] { "Dashboard", "Courses", "Classes", "Materials", "Lessons", "Reports", "Student Progress", "Course Analytics", "Profile", "Settings", "Help", "Support" };
-
-            foreach (var menuName in managerMenus)
-            {
-                if (menuDict.ContainsKey(menuName))
-                {
-                    roleMenuAssignments.Add(new RoleMenu { RoleId = managerRole.Id, MenuId = menuDict[menuName] });
                 }
             }
 

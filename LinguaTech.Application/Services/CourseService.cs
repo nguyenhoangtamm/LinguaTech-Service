@@ -11,9 +11,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Data;
 using CourseCategoryTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseCategoryType;
-using CourseTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseType;
 using CourseDetailTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseDetailType;
+using CourseTypeResponse = LinguaTech.Domain.DTOs.Responses.CourseType;
 
 namespace LinguaTech.Application.Services;
 
@@ -70,7 +71,7 @@ public class CourseService : BaseService, ICourseService
                 ThumbnailUrl = request.ThumbnailUrl,
                 VideoUrl = request.VideoUrl,
                 CategoryId = request.CategoryId,
-                IsPublished = false,
+                IsPublished = true,
                 StudentsCount = 0,
                 Rating = 0,
                 Status = LinguaTech.Domain.Enums.CourseStatus.Draft,
@@ -81,6 +82,38 @@ public class CourseService : BaseService, ICourseService
 
             await courseRepository.AddAsync(course);
             await _unitOfWork.Save(cancellationToken);
+
+            // Handle tags: attach provided tag ids to the course
+            if (request.Tags != null && request.Tags.Any())
+            {
+                var courseCourseTagRepository = _unitOfWork.Repository<CourseCourseTag>();
+                var courseTagRepository = _unitOfWork.Repository<CourseTag>();
+
+                var distinctTags = request.Tags.Distinct().ToList();
+
+                foreach (var tagId in distinctTags)
+                {
+                    var tagExists = await courseTagRepository.Entities
+                        .AnyAsync(t => t.Id == tagId && !t.IsDeleted, cancellationToken);
+
+                    if (!tagExists)
+                    {
+                        return Result<int>.Failure($"Course tag with ID {tagId} does not exist");
+                    }
+
+                    var cct = new CourseCourseTag
+                    {
+                        CourseId = course.Id,
+                        CourseTagId = tagId,
+                        CreatedDate = DateTime.UtcNow,
+                        CreatedBy = UserName ?? "System"
+                    };
+
+                    await courseCourseTagRepository.AddAsync(cct);
+                }
+
+                await _unitOfWork.Save(cancellationToken);
+            }
 
             LogInformation($"Course created successfully with ID: {course.Id}");
             return Result<int>.Success(course.Id, "Course created successfully");
@@ -166,6 +199,56 @@ public class CourseService : BaseService, ICourseService
             course.UpdatedBy = UserName ?? "System";
 
             await courseRepository.UpdateAsync(course);
+
+            // Handle tags: sync CourseCourseTag for this course when Tags provided
+            if (request.Tags != null)
+            {
+                var courseCourseTagRepository = _unitOfWork.Repository<CourseCourseTag>();
+                var courseTagRepository = _unitOfWork.Repository<CourseTag>();
+
+                var newTagIds = request.Tags.Distinct().ToList();
+
+                // Validate all provided tags exist
+                foreach (var tagId in newTagIds)
+                {
+                    var tagExists = await courseTagRepository.Entities
+                        .AnyAsync(t => t.Id == tagId && !t.IsDeleted, cancellationToken);
+
+                    if (!tagExists)
+                    {
+                        return Result<int>.Failure($"Course tag with ID {tagId} does not exist");
+                    }
+                }
+
+                var existingCourseTags = await courseCourseTagRepository.Entities
+                    .Where(cct => cct.CourseId == id)
+                    .ToListAsync(cancellationToken);
+
+                var existingTagIds = existingCourseTags.Select(e => e.CourseTagId).ToList();
+
+                // Tags to remove
+                var toRemove = existingCourseTags.Where(e => !newTagIds.Contains(e.CourseTagId)).ToList();
+                foreach (var rem in toRemove)
+                {
+                    await courseCourseTagRepository.DeleteAsync(rem);
+                }
+
+                // Tags to add
+                var toAdd = newTagIds.Where(nt => !existingTagIds.Contains(nt)).ToList();
+                foreach (var addId in toAdd)
+                {
+                    var cct = new CourseCourseTag
+                    {
+                        CourseId = id,
+                        CourseTagId = addId,
+                        CreatedDate = DateTime.UtcNow,
+                        CreatedBy = UserName ?? "System"
+                    };
+
+                    await courseCourseTagRepository.AddAsync(cct);
+                }
+            }
+
             await _unitOfWork.Save(cancellationToken);
 
             LogInformation($"Course updated successfully with ID: {id}");
@@ -313,14 +396,16 @@ public class CourseService : BaseService, ICourseService
             var totalCount = await queryable.CountAsync(cancellationToken);
             var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
 
-            var coursesDto = await queryable
-        .Skip((query.PageNumber - 1) * query.PageSize)
-      .Take(query.PageSize)
-           .ProjectTo<CourseTypeResponse>(_mapper.ConfigurationProvider)
-    .ToPaginatedListAsync(query.PageNumber, query.PageSize, cancellationToken);
+            var course = await queryable
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync(cancellationToken);
 
-            LogInformation($"Retrieved {coursesDto.TotalCount} courses with pagination successfully");
-            return coursesDto;
+            var coursesDto = _mapper.Map<List<CourseTypeResponse>>(course);
+            var result = PaginatedResult<CourseTypeResponse>.Create(coursesDto, totalCount, query.PageNumber, query.PageSize);
+
+            LogInformation($"Retrieved {course.Count} roles successfully for page {query.PageNumber}");
+            return result;
         }
         catch (Exception ex)
         {

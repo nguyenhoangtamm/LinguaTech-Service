@@ -51,7 +51,7 @@ public class MappingProfile : AutoMapper.Profile
         CreateMap<Course, LinguaTech.Domain.DTOs.Responses.CourseType>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Level))
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag.Name)))
+            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.CourseTag.Id)))
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
             .ForMember(dest => dest.ModulesCount, opt => opt.MapFrom(src => src.Modules.Count(m => !m.IsDeleted)))
             .ForMember(dest => dest.LessonsCount, opt => opt.MapFrom(src => src.Modules.Where(m => !m.IsDeleted).SelectMany(m => m.Lessons).Count(l => !l.IsDeleted)));
