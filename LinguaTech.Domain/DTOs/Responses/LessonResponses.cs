@@ -17,6 +17,7 @@ public class LessonType : IMapFrom<Lesson>
     public int SectionsCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public string VideoUrl { get; set; }
 }
 
 public class LessonWithMaterialsType : LessonType

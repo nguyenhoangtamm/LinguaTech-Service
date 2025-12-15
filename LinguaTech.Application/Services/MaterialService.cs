@@ -319,7 +319,7 @@ public class MaterialService : BaseService, IMaterialService
 
             var materials = await materialsQuery
                 .OrderBy(m => m.FileName)
-                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Skip((query.PageNumber-1) * query.PageSize)
                 .Take(query.PageSize)
                 .ProjectTo<MaterialType>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);

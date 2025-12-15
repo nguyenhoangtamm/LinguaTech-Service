@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddTransient<ISubmissionService, SubmissionService>();
         services.AddTransient<IMenuService, MenuService>();
         services.AddTransient<ISectionService, SectionService>();
+        services.AddTransient<IAdminDashboardService, AdminDashboardService>();
 
         // Register FluentValidation validators from this assembly
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
