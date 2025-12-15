@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+    linguatech-api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: linguatech-api:latest
+        container_name: linguatech-api
+        depends_on:
+            db:
+                condition: service_healthy
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Production
+            # The application reads ConnectionStrings:DefaultConnection from configuration
+            - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+            # Optionally override the JWT key in production (use a strong key or secret store)
+            # - JwtSettings__Key=${JWT_KEY}
+        ports:
+            - "5000:80"
+        restart: unless-stopped
+        networks:
+            - lingua-net
+
+    db:
+        image: postgres:15-alpine
+        container_name: linguatech-db
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER:-postgres}
+            # For a no-password (trust) setup set POSTGRES_HOST_AUTH_METHOD=trust on the container
+            - POSTGRES_HOST_AUTH_METHOD=${POSTGRES_HOST_AUTH_METHOD:-trust}
+            - POSTGRES_DB=${POSTGRES_DB:-LinguaTech}
+        volumes:
+            - lingua-postgres-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        ports:
+            - "5432:5432"
+        restart: unless-stopped
+        networks:
+            - lingua-net
+
+    # pgAdmin removed per request — only DB is provided in this compose
+
+volumes:
+    lingua-postgres-data:
+
+networks:
+    lingua-net:
+        driver: bridge

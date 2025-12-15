@@ -1,0 +1,9 @@
+namespace LinguaTech.Domain.Enums;
+
+public enum CourseStatus
+{
+    Draft = 1,
+    Active = 2,
+    Inactive = 3,
+    Archived = 4
+}
